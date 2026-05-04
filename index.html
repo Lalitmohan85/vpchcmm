@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HRMS — Unified Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0f14;
+  --surface:  #161921;
+  --card:     #1e2230;
+  --border:   #2a2f3e;
+  --accent:   #6c63ff;
+  --accent2:  #00d4aa;
+  --warn:     #ff6b6b;
+  --gold:     #f0c040;
+  --text:     #e8eaf0;
+  --muted:    #6b7280;
+  --radius:   14px;
+  --font-h:   'Syne', sans-serif;
+  --font-b:   'DM Sans', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);min-height:100vh;overflow-x:hidden;}
+a{color:var(--accent);text-decoration:none;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+
+/* ── LOGIN ── */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:radial-gradient(ellipse at 30% 20%, rgba(108,99,255,.18) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 80%, rgba(0,212,170,.12) 0%, transparent 60%), var(--bg);}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:48px 40px;width:min(420px,92vw);
+  box-shadow:0 32px 80px rgba(0,0,0,.5);}
+.login-logo{font-family:var(--font-h);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;}
+.login-logo span{color:var(--accent);}
+.login-sub{color:var(--muted);font-size:13px;margin-bottom:36px;}
+.login-box label{display:block;font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.login-box input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:12px 14px;font-family:var(--font-b);font-size:14px;outline:none;transition:.2s;}
+.login-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.15);}
+.login-box .field{margin-bottom:18px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 20px;border-radius:10px;border:none;font-family:var(--font-b);font-size:14px;
+  font-weight:500;cursor:pointer;transition:.18s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#7b73ff;transform:translateY(-1px);}
+.btn-danger{background:rgba(255,107,107,.15);color:var(--warn);border:1px solid rgba(255,107,107,.3);}
+.btn-danger:hover{background:rgba(255,107,107,.25);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-success{background:rgba(0,212,170,.15);color:var(--accent2);border:1px solid rgba(0,212,170,.3);}
+.btn-success:hover{background:rgba(0,212,170,.25);}
+.btn-full{width:100%;}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:8px;}
+
+/* ── APP SHELL ── */
+#app{display:none;min-height:100vh;}
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+@media(max-width:768px){.shell{grid-template-columns:1fr;}}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;
+  padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-logo{padding:0 20px 24px;font-family:var(--font-h);font-size:18px;font-weight:800;
+  border-bottom:1px solid var(--border);margin-bottom:16px;}
+.sidebar-logo span{color:var(--accent);}
+.sidebar-user{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.sidebar-user .name{font-weight:600;font-size:14px;}
+.sidebar-user .role-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;margin-top:4px;}
+.role-employee{background:rgba(108,99,255,.2);color:#a89dff;}
+.role-superuser{background:rgba(0,212,170,.2);color:#40e0c0;}
+.role-admin{background:rgba(240,192,64,.2);color:var(--gold);}
+.role-manager{background:rgba(255,107,107,.2);color:#ff9090;}
+.nav-section{padding:8px 20px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--muted);transition:.15s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.nav-item.active{color:var(--accent);background:rgba(108,99,255,.1);border-left-color:var(--accent);}
+.nav-item .icon{width:18px;text-align:center;flex-shrink:0;}
+.sidebar-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);}
+.mobile-header{display:none;padding:16px 20px;background:var(--surface);border-bottom:1px solid var(--border);
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+@media(max-width:768px){
+  .sidebar{display:none;position:fixed;z-index:200;width:260px;height:100vh;}
+  .sidebar.open{display:flex;}
+  .mobile-header{display:flex;}
+  .main-content{padding-top:0;}
+}
+
+/* ── MAIN ── */
+.main-content{padding:32px;overflow-y:auto;min-height:100vh;}
+@media(max-width:768px){.main-content{padding:20px 16px;}}
+.page{display:none;}
+.page.active{display:block;}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:var(--font-h);font-size:26px;font-weight:800;letter-spacing:-0.5px;}
+.page-subtitle{color:var(--muted);font-size:13px;margin-top:4px;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+.card-sm{padding:16px;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media(max-width:900px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}}
+
+/* ── STAT CARDS ── */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;
+  display:flex;flex-direction:column;gap:6px;}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;}
+.stat-value{font-family:var(--font-h);font-size:32px;font-weight:800;letter-spacing:-1px;}
+.stat-change{font-size:12px;color:var(--muted);}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:rgba(255,255,255,.04);}
+th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+td{padding:12px 16px;border-bottom:1px solid rgba(42,47,62,.6);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.02);}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-field.full{grid-column:1/-1;}
+.form-field label{font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-field input,.form-field select,.form-field textarea{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:11px 14px;font-family:var(--font-b);font-size:14px;outline:none;transition:.2s;}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.12);}
+.form-field select option{background:var(--surface);}
+.form-field textarea{resize:vertical;min-height:80px;}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+
+/* ── BADGE / TAG ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-green{background:rgba(0,212,170,.15);color:var(--accent2);}
+.badge-yellow{background:rgba(240,192,64,.15);color:var(--gold);}
+.badge-red{background:rgba(255,107,107,.15);color:var(--warn);}
+.badge-purple{background:rgba(108,99,255,.15);color:#a89dff;}
+.badge-gray{background:rgba(107,114,128,.15);color:var(--muted);}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:28px;width:min(600px,95vw);max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.modal-title{font-family:var(--font-h);font-size:18px;font-weight:700;}
+.modal-close{background:var(--card);border:none;color:var(--muted);width:32px;height:32px;
+  border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{color:var(--text);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;background:var(--surface);border-radius:12px;padding:4px;
+  border:1px solid var(--border);width:fit-content;flex-wrap:wrap;margin-bottom:24px;}
+.tab{padding:8px 16px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;
+  color:var(--muted);transition:.15s;}
+.tab.active{background:var(--accent);color:#fff;}
+
+/* ── PROFILE CARD ── */
+.profile-header{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-bottom:24px;}
+.profile-avatar{width:80px;height:80px;border-radius:16px;object-fit:cover;
+  background:var(--border);flex-shrink:0;border:2px solid var(--accent);}
+.profile-info h2{font-family:var(--font-h);font-size:22px;font-weight:800;}
+.profile-info p{color:var(--muted);font-size:13px;margin-top:2px;}
+.profile-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+
+/* ── ATTENDANCE ── */
+.punch-zone{text-align:center;padding:32px;background:var(--card);border-radius:20px;border:1px solid var(--border);}
+.punch-time{font-family:var(--font-h);font-size:52px;font-weight:800;letter-spacing:-2px;color:var(--accent);}
+.punch-date{color:var(--muted);margin-bottom:24px;}
+.punch-btn{width:140px;height:140px;border-radius:50%;border:3px solid var(--accent);
+  background:rgba(108,99,255,.15);color:var(--text);font-family:var(--font-h);
+  font-size:18px;font-weight:700;cursor:pointer;transition:.2s;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;margin:0 auto;}
+.punch-btn:hover{background:var(--accent);transform:scale(1.04);}
+.punch-btn.out{border-color:var(--warn);background:rgba(255,107,107,.1);}
+.punch-btn.out:hover{background:var(--warn);}
+
+/* ── LEAVE CARD ── */
+.leave-balance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:500px){.leave-balance-grid{grid-template-columns:1fr;}}
+.leave-balance-item{text-align:center;padding:16px;background:var(--card);border-radius:12px;border:1px solid var(--border);}
+.leave-balance-item .num{font-family:var(--font-h);font-size:36px;font-weight:800;}
+.leave-balance-item .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── ALERTS ── */
+.alert{padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px;}
+.alert-warn{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);color:var(--gold);}
+.alert-error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--warn);}
+.alert-success{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);color:var(--accent2);}
+.alert-info{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:#a89dff;}
+
+/* ── ASSET TAGS ── */
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.asset-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:.2s;}
+.asset-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.asset-card .a-name{font-family:var(--font-h);font-weight:700;font-size:15px;margin-bottom:4px;}
+.asset-card .a-id{font-size:11px;color:var(--muted);}
+.asset-card .a-meta{margin-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+
+/* ── CHART PLACEHOLDER ── */
+.chart-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:16px;color:var(--muted);}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:.4s;}
+.bar-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;}
+
+/* ── MISC ── */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.text-muted{color:var(--muted);}
+.text-accent{color:var(--accent);}
+.text-green{color:var(--accent2);}
+.text-red{color:var(--warn);}
+.text-gold{color:var(--gold);}
+.mt-2{margin-top:8px;} .mt-3{margin-top:12px;} .mt-4{margin-top:16px;} .mb-4{margin-bottom:16px;}
+.flex{display:flex;} .gap-2{gap:8px;} .gap-3{gap:12px;} .items-center{align-items:center;}
+.justify-between{justify-content:space-between;} .flex-wrap{flex-wrap:wrap;}
+.search-bar{background:var(--surface);border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:10px 14px;font-family:var(--font-b);font-size:13px;outline:none;width:100%;max-width:320px;}
+.search-bar:focus{border-color:var(--accent);}
+.empty-state{text-align:center;padding:48px;color:var(--muted);}
+.empty-state .icon{font-size:40px;margin-bottom:12px;}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;background:rgba(255,255,255,.06);color:var(--muted);}
+input[type=file]{display:none;}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:.2s;color:var(--muted);font-size:13px;}
+.upload-zone:hover{border-color:var(--accent);color:var(--accent);}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;
+  font-size:13px;min-width:240px;max-width:320px;animation:slideIn .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast-item.success{border-color:rgba(0,212,170,.4);color:var(--accent2);}
+.toast-item.error{border-color:rgba(255,107,107,.4);color:var(--warn);}
+.toast-item.info{border-color:rgba(108,99,255,.4);color:#a89dff;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.face-preview{width:100%;max-width:320px;border-radius:12px;background:var(--bg);}
+.red-flag{color:var(--warn);font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><span>H</span>RMS</div>
+    <div class="login-sub">Unified HR & Asset Management</div>
+    <div class="field">
+      <label>Username</label>
+      <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div id="loginError" class="alert alert-error" style="display:none;"></div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:8px;">
+      Sign In
+    </button>
+    <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--muted);">
+      Contact your admin to reset your password
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════════ -->
+<div id="app">
+  <!-- mobile header -->
+  <div class="mobile-header">
+    <div class="sidebar-logo" style="margin:0;padding:0;border:none;font-size:16px;"><span>H</span>RMS</div>
+    <button class="btn btn-ghost btn-sm" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰ Menu</button>
+  </div>
+
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-logo"><span>H</span>RMS</div>
+      <div class="sidebar-user">
+        <div class="name" id="sidebarName">—</div>
+        <div class="role-badge" id="sidebarRoleBadge">—</div>
+      </div>
+
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <span class="icon">◈</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="profile" onclick="navigate('profile')">
+        <span class="icon">◉</span> My Profile
+      </div>
+
+      <div class="nav-section">Workforce</div>
+      <div class="nav-item" data-page="attendance" onclick="navigate('attendance')">
+        <span class="icon">◷</span> Attendance
+      </div>
+      <div class="nav-item" data-page="leaves" onclick="navigate('leaves')">
+        <span class="icon">◌</span> Leave
+      </div>
+      <div class="nav-item hide-employee" data-page="employees" onclick="navigate('employees')">
+        <span class="icon">◎</span> Employees
+      </div>
+
+      <div class="nav-section">Assets</div>
+      <div class="nav-item" data-page="assets" onclick="navigate('assets')">
+        <span class="icon">▣</span> Assets
+      </div>
+
+      <div class="nav-section hide-employee">Admin</div>
+      <div class="nav-item hide-employee" data-page="documents" onclick="navigate('documents')">
+        <span class="icon">◫</span> Documents
+      </div>
+      <div class="nav-item hide-employee hide-superuser" data-page="users" onclick="navigate('users')">
+        <span class="icon">◑</span> Users
+      </div>
+      <div class="nav-item manager-only" data-page="finance" onclick="navigate('finance')">
+        <span class="icon">◈</span> Finance ✦
+      </div>
+      <div class="nav-item hide-employee" data-page="logs" onclick="navigate('logs')">
+        <span class="icon">◧</span> Audit Logs
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm btn-full" onclick="showChangePwModal()">🔑 Change Password</button>
+        <button class="btn btn-danger btn-sm btn-full" style="margin-top:8px;" onclick="doLogout()">Sign Out</button>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle" id="dashGreeting">Welcome back</div>
+        </div>
+        <div class="grid-4 mb-4" id="dashStats"></div>
+        <div class="grid-2 mt-4">
+          <div class="card">
+            <div style="font-family:var(--font-h);font-weight:700;margin-bottom:16px;">📋 Recent Leave Requests</div>
+            <div id="dashLeaves"></div>
+          </div>
+          <div class="card">
+            <div style="font-family:var(--font-h);font-weight:700;margin-bottom:16px;">📦 My Assets</div>
+            <div id="dashAssets"></div>
+          </div>
+        </div>
+        <div class="card mt-4" id="dashAttendanceCard">
+          <div style="font-family:var(--font-h);font-weight:700;margin-bottom:16px;">📅 Today's Attendance</div>
+          <div id="dashAttendance"></div>
+        </div>
+      </div>
+
+      <!-- ── PROFILE ── -->
+      <div id="page-profile" class="page">
+        <div class="page-header">
+          <div class="page-title">My Profile</div>
+          <div class="page-subtitle">View and request changes to your information</div>
+        </div>
+        <div id="profileContent"></div>
+      </div>
+
+      <!-- ── EMPLOYEES ── -->
+      <div id="page-employees" class="page">
+        <div class="page-header">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <div class="page-title">Employees</div>
+              <div class="page-subtitle">Manage employee profiles</div>
+            </div>
+            <button class="btn btn-primary admin-only" onclick="openAddEmployeeModal()">+ Add Employee</button>
+          </div>
+        </div>
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <input class="search-bar" id="empSearch" placeholder="Search by name, ID, department…" oninput="renderEmployeeTable()">
+          <select class="search-bar" id="empDeptFilter" style="max-width:160px;" onchange="renderEmployeeTable()">
+            <option value="">All Departments</option>
+          </select>
+          <select class="search-bar" id="empStatusFilter" style="max-width:140px;" onchange="renderEmployeeTable()">
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Exited">Exited</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Name</th><th>Department</th><th>Designation</th>
+              <th>Joining</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="empTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ATTENDANCE ── -->
+      <div id="page-attendance" class="page">
+        <div class="page-header">
+          <div class="page-title">Attendance</div>
+          <div class="page-subtitle">Punch in/out and view records</div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'att-punch')">Punch</div>
+          <div class="tab" onclick="switchTab(this,'att-records')">My Records</div>
+          <div class="tab hide-employee" onclick="switchTab(this,'att-admin')">Admin View</div>
+          <div class="tab hide-employee" onclick="switchTab(this,'att-corrections')">Corrections</div>
+        </div>
+
+        <div id="att-punch">
+          <div class="grid-2">
+            <div class="punch-zone">
+              <div class="punch-time" id="liveClock">00:00:00</div>
+              <div class="punch-date" id="liveDate"></div>
+              <button class="punch-btn" id="punchBtn" onclick="doPunch()">
+                <span style="font-size:28px;">⏱</span>
+                <span id="punchBtnLabel">PUNCH IN</span>
+              </button>
+              <div id="punchStatus" class="mt-3 text-muted" style="font-size:13px;"></div>
+            </div>
+            <div class="card">
+              <div style="font-weight:600;margin-bottom:12px;">📍 Location & Face</div>
+              <video id="webcamFeed" autoplay muted playsinline class="face-preview" style="display:none;"></video>
+              <canvas id="faceCanvas" style="display:none;"></canvas>
+              <div id="locationInfo" class="mt-3 text-muted" style="font-size:13px;"></div>
+              <button class="btn btn-ghost btn-sm mt-3" onclick="startWebcam()">📷 Enable Camera</button>
+              <div id="todayPunches" class="mt-4"></div>
+            </div>
+          </div>
+          <div class="alert alert-info mt-4" style="font-size:12px;">
+            📱 Attendance is captured on your personal device. GPS and face snapshot are used for verification.
+          </div>
+        </div>
+
+        <div id="att-records" style="display:none;">
+          <div class="flex gap-2 mb-4 flex-wrap items-center">
+            <input type="month" class="search-bar" id="attMonthFilter" style="max-width:180px;" onchange="loadMyAttendance()">
+            <button class="btn btn-ghost btn-sm" onclick="exportAttendanceCSV()">⬇ Export CSV</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Date</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Location</th></tr></thead>
+            <tbody id="attRecordsBody"></tbody>
+          </table></div>
+        </div>
+
+        <div id="att-admin" style="display:none;">
+          <div class="flex gap-2 mb-4 flex-wrap items-center">
+            <input type="date" class="search-bar" id="adminDateFilter" style="max-width:180px;" onchange="loadAdminAttendance()">
+            <button class="btn btn-ghost btn-sm" onclick="loadAdminAttendance()">🔍 Load</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Employee</th><th>Punch Type</th><th>Time</th><th>Location</th><th>Face</th></tr></thead>
+            <tbody id="adminAttBody"></tbody>
+          </table></div>
+        </div>
+
+        <div id="att-corrections" style="display:none;">
+          <div class="flex justify-between mb-4">
+            <div style="font-weight:600;">Attendance Correction Requests</div>
+            <button class="btn btn-primary btn-sm" onclick="openCorrectionModal()">+ Request Correction</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>ID</th><th>Employee</th><th>Date</th><th>Requested In</th><th>Reason</th><th>Status</th><th class="admin-only">Action</th></tr></thead>
+            <tbody id="correctionsBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ── LEAVES ── -->
+      <div id="page-leaves" class="page">
+        <div class="page-header">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <div class="page-title">Leave Management</div>
+              <div class="page-subtitle">Apply for leave and track your balance</div>
+            </div>
+            <button class="btn btn-primary" onclick="openLeaveModal()">+ Apply Leave</button>
+          </div>
+        </div>
+        <div class="leave-balance-grid" id="leaveBalanceGrid"></div>
+        <div class="tabs" style="margin-bottom:16px;">
+          <div class="tab active" onclick="switchTab(this,'lv-mine')">My Leaves</div>
+          <div class="tab hide-employee" onclick="switchTab(this,'lv-all')">All Requests</div>
+        </div>
+        <div id="lv-mine">
+          <div class="table-wrap"><table>
+            <thead><tr><th>ID</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Sandwich</th></tr></thead>
+            <tbody id="myLeavesBody"></tbody>
+          </table></div>
+        </div>
+        <div id="lv-all" style="display:none;">
+          <div class="flex gap-2 mb-3 flex-wrap">
+            <select class="search-bar" id="leaveStatusFilter" style="max-width:160px;" onchange="loadAllLeaves()">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th><th>Sandwich</th><th>Action</th></tr></thead>
+            <tbody id="allLeavesBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ── ASSETS ── -->
+      <div id="page-assets" class="page">
+        <div class="page-header">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <div class="page-title">Asset Management</div>
+              <div class="page-subtitle">Inventory, allocation and recovery</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-primary hide-employee hide-superuser" onclick="openAddAssetModal()">+ Add Asset</button>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'ast-inventory')">Inventory</div>
+          <div class="tab" onclick="switchTab(this,'ast-my')">My Assets</div>
+          <div class="tab hide-employee" onclick="switchTab(this,'ast-history')">History</div>
+          <div class="tab manager-only" onclick="switchTab(this,'ast-recovery')">Recovery 🚩</div>
+        </div>
+
+        <div id="ast-inventory">
+          <div class="flex gap-2 mb-4 flex-wrap">
+            <input class="search-bar" id="assetSearch" placeholder="Search assets…" oninput="renderAssets()">
+            <select class="search-bar" id="assetCatFilter" style="max-width:160px;" onchange="renderAssets()">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div class="asset-grid" id="assetGrid"></div>
+        </div>
+
+        <div id="ast-my" style="display:none;">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Serial</th><th>Issued On</th><th>Condition</th></tr></thead>
+            <tbody id="myAssetsBody"></tbody>
+          </table></div>
+        </div>
+
+        <div id="ast-history" style="display:none;">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Date</th><th>Asset</th><th>Action</th><th>Issued To</th><th>Returned From</th><th>By</th></tr></thead>
+            <tbody id="assetHistBody"></tbody>
+          </table></div>
+        </div>
+
+        <div id="ast-recovery" style="display:none;">
+          <div class="alert alert-warn mb-4">⚠️ Assets listed below belong to employees with status <strong>Exited</strong> or <strong>Inactive</strong> and have not been returned.</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Asset</th><th>Serial</th><th>Assigned To</th><th>Department</th><th>Flag</th></tr></thead>
+            <tbody id="recoveryBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ── DOCUMENTS ── -->
+      <div id="page-documents" class="page">
+        <div class="page-header">
+          <div class="page-title">Document Vault</div>
+          <div class="page-subtitle">Secure employee documents</div>
+        </div>
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <select class="search-bar" id="docEmpFilter" style="max-width:240px;" onchange="loadDocuments()">
+            <option value="">Select Employee…</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openUploadDocModal()">⬆ Upload Document</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Doc Type</th><th>File Name</th><th>Uploaded By</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="docTableBody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ── USERS ── -->
+      <div id="page-users" class="page">
+        <div class="page-header">
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <div class="page-title">User Management</div>
+              <div class="page-subtitle">Control access and roles</div>
+            </div>
+            <button class="btn btn-primary manager-only" onclick="openAddUserModal()">+ Add User</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="userTableBody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ── FINANCE ── -->
+      <div id="page-finance" class="page">
+        <div class="page-header">
+          <div class="page-title">Financial Dashboard ✦</div>
+          <div class="page-subtitle">Manager-only — Salary & Spend Analytics</div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'fin-overview')">Overview</div>
+          <div class="tab" onclick="switchTab(this,'fin-ledger')">Salary Ledger</div>
+          <div class="tab" onclick="switchTab(this,'fin-analytics')">Analytics</div>
+          <div class="tab" onclick="switchTab(this,'fin-manage')">Manage Salaries</div>
+        </div>
+
+        <div id="fin-overview">
+          <div class="grid-4 mb-4" id="finStats"></div>
+          <div class="grid-2">
+            <div class="chart-box">
+              <div class="chart-title">Monthly Salary Burn (₹)</div>
+              <div class="bar-chart" id="monthlyBurnChart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">Dept Spend Distribution</div>
+              <div class="bar-chart" id="deptSpendChart"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="fin-ledger" style="display:none;">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Employee</th><th>Dept</th><th>Start CTC</th><th>Current CTC</th><th>Last Increment</th><th>%</th><th>Status</th></tr></thead>
+            <tbody id="salaryTableBody"></tbody>
+          </table></div>
+        </div>
+
+        <div id="fin-analytics" style="display:none;">
+          <div class="grid-2 mb-4">
+            <div class="stat-card">
+              <div class="stat-label">Active Staff Burn</div>
+              <div class="stat-value text-green" id="activeSpend">—</div>
+              <div class="stat-change">Monthly outflow for active employees</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Exited Staff Total Spend</div>
+              <div class="stat-value text-gold" id="exitedSpend">—</div>
+              <div class="stat-change">Historical total paid to exited employees</div>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-weight:600;margin-bottom:12px;">🏆 Highest Paid Departments</div>
+            <div id="highestPaidDepts"></div>
+          </div>
+          <div class="card mt-4">
+            <div style="font-weight:600;margin-bottom:12px;">📊 Projected Quarterly Spend</div>
+            <div id="projectedSpend"></div>
+          </div>
+        </div>
+
+        <div id="fin-manage" style="display:none;">
+          <div class="flex justify-between mb-4">
+            <div style="font-weight:600;">Salary Records</div>
+            <button class="btn btn-primary btn-sm" onclick="openSalaryModal()">+ Add / Edit Salary</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Employee</th><th>Dept</th><th>Start CTC</th><th>Current CTC</th><th>Increment Date</th><th>%</th><th>Actions</th></tr></thead>
+            <tbody id="salaryManageBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ── LOGS ── -->
+      <div id="page-logs" class="page">
+        <div class="page-header">
+          <div class="page-title">Audit Logs</div>
+          <div class="page-subtitle">Full activity trail</div>
+        </div>
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <input class="search-bar" id="logSearch" placeholder="Search logs…" oninput="renderLogs()">
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Time</th><th>Action</th><th>Asset/User</th><th>Done By</th><th>Details</th></tr></thead>
+          <tbody id="logsBody"></tbody>
+        </table></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ MODALS ════════════════════════════════════════════════════ -->
+
+<!-- Change Password -->
+<div class="modal-overlay" id="changePwModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closeModal('changePwModal')">×</button>
+    </div>
+    <div class="form-field mb-4"><label>Current Password</label><input type="password" id="cpOld"></div>
+    <div class="form-field mb-4"><label>New Password</label><input type="password" id="cpNew"></div>
+    <div class="form-field mb-4"><label>Confirm New Password</label><input type="password" id="cpConfirm"></div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="doChangePassword()">Update Password</button></div>
+  </div>
+</div>
+
+<!-- Add/Edit Employee -->
+<div class="modal-overlay" id="employeeModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <div class="modal-title" id="empModalTitle">Add Employee</div>
+      <button class="modal-close" onclick="closeModal('employeeModal')">×</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Employee ID *</label><input id="emp_id"></div>
+      <div class="form-field"><label>Full Name *</label><input id="emp_name"></div>
+      <div class="form-field"><label>Department</label><input id="emp_dept"></div>
+      <div class="form-field"><label>Designation</label><input id="emp_desig"></div>
+      <div class="form-field"><label>Date of Joining</label><input type="date" id="emp_doj"></div>
+      <div class="form-field"><label>Date of Birth</label><input type="date" id="emp_dob"></div>
+      <div class="form-field"><label>Phone</label><input id="emp_phone"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="emp_email"></div>
+      <div class="form-field"><label>PAN</label><input id="emp_pan"></div>
+      <div class="form-field"><label>Aadhaar</label><input id="emp_aadhaar"></div>
+      <div class="form-field"><label>Employment Type</label>
+        <select id="emp_type"><option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Intern</option></select>
+      </div>
+      <div class="form-field"><label>Status</label>
+        <select id="emp_status"><option>Active</option><option>Inactive</option><option>Exited</option></select>
+      </div>
+      <div class="form-field"><label>Reporting Manager</label><input id="emp_manager"></div>
+      <div class="form-field"><label>Emergency Contact</label><input id="emp_emergency"></div>
+      <div class="form-field full"><label>Address</label><input id="emp_address"></div>
+      <div class="form-field full"><label>Education</label><input id="emp_edu"></div>
+      <div class="form-field full"><label>Experience Summary</label><textarea id="emp_exp"></textarea></div>
+      <div class="form-field"><label>Bank Account</label><input id="emp_bank"></div>
+      <div class="form-field"><label>IFSC</label><input id="emp_ifsc"></div>
+      <div class="form-field"><label>PF Number</label><input id="emp_pf"></div>
+      <div class="form-field"><label>Photo URL (optional)</label><input id="emp_photo"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('employeeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">Save Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Application -->
+<div class="modal-overlay" id="leaveModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">Apply for Leave</div>
+      <button class="modal-close" onclick="closeModal('leaveModal')">×</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Leave Type</label>
+        <select id="lv_type">
+          <option value="Earned Leave">Earned Leave</option>
+          <option value="Sick Leave">Sick Leave</option>
+          <option value="LWP">Leave Without Pay (LWP)</option>
+          <option value="Optional Holiday">Optional Holiday</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Days</label><input id="lv_days" type="number" min="0.5" step="0.5" readonly></div>
+      <div class="form-field"><label>From Date</label><input type="date" id="lv_from" onchange="calcLeaveDays()"></div>
+      <div class="form-field"><label>To Date</label><input type="date" id="lv_to" onchange="calcLeaveDays()"></div>
+      <div class="form-field full"><label>Reason</label><textarea id="lv_reason" rows="3"></textarea></div>
+    </div>
+    <div id="sandwichAlert" style="display:none;" class="alert alert-warn mt-3">
+      ⚠️ Sandwich Rule: Your leave spans a weekend. A 4-day deduction may apply.
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('leaveModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLeave()">Submit Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Asset (reuses original logic) -->
+<div class="modal-overlay" id="addAssetModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div class="modal-title" id="assetModalTitle">Add New Asset</div>
+      <button class="modal-close" onclick="closeModal('addAssetModal')">×</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Asset ID *</label><input id="a_id"></div>
+      <div class="form-field"><label>Asset Name *</label><input id="a_name"></div>
+      <div class="form-field"><label>Category</label>
+        <select id="a_cat">
+          <option>Electronics</option><option>Furniture</option><option>Vehicles</option>
+          <option>IT Equipment</option><option>Tools</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Brand / Model</label><input id="a_brand"></div>
+      <div class="form-field"><label>Serial Number</label><input id="a_serial" onblur="checkSerial()"></div>
+      <div class="form-field"><label>Purchase Date</label><input type="date" id="a_pdate"></div>
+      <div class="form-field"><label>Purchase Cost (₹)</label><input type="number" id="a_cost"></div>
+      <div class="form-field"><label>Condition</label>
+        <select id="a_cond"><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select>
+      </div>
+      <div class="form-field"><label>Current Holder</label><input id="a_holder"></div>
+      <div class="form-field"><label>Department</label><input id="a_dept"></div>
+      <div class="form-field full"><label>Description</label><textarea id="a_desc"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addAssetModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAsset()">Save Asset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Allocate / Return Asset -->
+<div class="modal-overlay" id="assetActionModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="assetActionTitle">Allocate Asset</div>
+      <button class="modal-close" onclick="closeModal('assetActionModal')">×</button>
+    </div>
+    <input type="hidden" id="aa_assetId">
+    <input type="hidden" id="aa_assetName">
+    <input type="hidden" id="aa_action">
+    <div id="aa_allocateFields">
+      <div class="form-field mb-3"><label>Issue To (Employee Name)</label><input id="aa_issuedTo"></div>
+      <div class="form-field mb-3"><label>Department</label><input id="aa_dept"></div>
+      <div class="form-field mb-3"><label>Condition</label>
+        <select id="aa_cond"><option>New</option><option>Good</option><option>Fair</option><option>Poor</option></select>
+      </div>
+    </div>
+    <div id="aa_returnFields" style="display:none;">
+      <div class="form-field mb-3"><label>Returned By</label><input id="aa_returnedBy"></div>
+      <div class="form-field mb-3"><label>Condition on Return</label>
+        <select id="aa_retCond"><option>Good</option><option>Fair</option><option>Poor</option><option>Damaged</option></select>
+      </div>
+    </div>
+    <div class="form-field mb-3"><label>Notes</label><textarea id="aa_notes" rows="2"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('assetActionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="doAssetAction()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="userModalTitle">Add User</div>
+      <button class="modal-close" onclick="closeModal('addUserModal')">×</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Username *</label><input id="u_user"></div>
+      <div class="form-field"><label>Password *</label><input type="password" id="u_pass"></div>
+      <div class="form-field full"><label>Full Name *</label><input id="u_name"></div>
+      <div class="form-field"><label>Role</label>
+        <select id="u_role">
+          <option value="Employee">Employee</option>
+          <option value="SuperUser">SuperUser</option>
+          <option value="Admin">Admin</option>
+          <option value="Manager">Manager</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Employee ID</label><input id="u_empid"></div>
+      <div class="form-field full"><label>Email</label><input type="email" id="u_email"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">Edit User</div>
+      <button class="modal-close" onclick="closeModal('editUserModal')">×</button>
+    </div>
+    <input type="hidden" id="eu_username">
+    <div class="form-field mb-3"><label>Change Role</label>
+      <select id="eu_role">
+        <option value="">— Keep current —</option>
+        <option value="Employee">Employee</option>
+        <option value="SuperUser">SuperUser</option>
+        <option value="Admin">Admin</option>
+        <option value="Manager">Manager</option>
+      </select>
+    </div>
+    <div class="form-field mb-3"><label>Reset Password (leave blank to keep)</label><input type="password" id="eu_pass"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('editUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditUser()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Salary Modal -->
+<div class="modal-overlay" id="salaryModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title">Salary Record</div>
+      <button class="modal-close" onclick="closeModal('salaryModal')">×</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Employee ID</label>
+        <select id="sal_empid" onchange="prefillSalaryFromEmp()"><option value="">Select…</option></select>
+      </div>
+      <div class="form-field"><label>Employee Name</label><input id="sal_name" readonly></div>
+      <div class="form-field"><label>Department</label><input id="sal_dept" readonly></div>
+      <div class="form-field"><label>Joining Date</label><input type="date" id="sal_doj"></div>
+      <div class="form-field"><label>Starting CTC (₹/yr)</label><input type="number" id="sal_start"></div>
+      <div class="form-field"><label>Current CTC (₹/yr)</label><input type="number" id="sal_current"></div>
+      <div class="form-field"><label>Last Increment Date</label><input type="date" id="sal_incDate"></div>
+      <div class="form-field"><label>Increment %</label><input type="number" id="sal_incPct" step="0.01"></div>
+      <div class="form-field"><label>Status</label>
+        <select id="sal_status"><option>Active</option><option>Exited</option></select>
+      </div>
+      <div class="form-field"><label>Exit Date (if exited)</label><input type="date" id="sal_exit"></div>
+      <div class="form-field full"><label>Notes (Ledger Entry)</label><input id="sal_notes"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('salaryModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSalary()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Correction -->
+<div class="modal-overlay" id="correctionModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Request Attendance Correction</div>
+      <button class="modal-close" onclick="closeModal('correctionModal')">×</button>
+    </div>
+    <div class="form-field mb-3"><label>Date</label><input type="date" id="corr_date"></div>
+    <div class="form-field mb-3"><label>Requested Punch In Time</label><input type="time" id="corr_in"></div>
+    <div class="form-field mb-3"><label>Requested Punch Out Time</label><input type="time" id="corr_out"></div>
+    <div class="form-field mb-3"><label>Reason</label><textarea id="corr_reason" rows="3"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('correctionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCorrection()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Document -->
+<div class="modal-overlay" id="uploadDocModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title">Upload Document</div>
+      <button class="modal-close" onclick="closeModal('uploadDocModal')">×</button>
+    </div>
+    <div class="form-field mb-3"><label>Employee</label>
+      <select id="docEmpSelect"><option value="">Select Employee…</option></select>
+    </div>
+    <div class="form-field mb-3"><label>Document Type</label>
+      <select id="docType">
+        <option>Aadhaar Card</option><option>PAN Card</option><option>Offer Letter</option>
+        <option>Experience Letter</option><option>Educational Certificate</option>
+        <option>Salary Slip</option><option>Other</option>
+      </select>
+    </div>
+    <div class="upload-zone" onclick="document.getElementById('docFileInput').click()">
+      📎 Click to select file (PDF, Image, Word)
+    </div>
+    <input type="file" id="docFileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onchange="handleDocFileSelect(event)">
+    <div id="docFilePreview" class="mt-3 text-muted" style="font-size:13px;"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('uploadDocModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadDocument()">Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Request Modal (employee view) -->
+<div class="modal-overlay" id="changeRequestModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Request Profile Change</div>
+      <button class="modal-close" onclick="closeModal('changeRequestModal')">×</button>
+    </div>
+    <div class="form-field mb-3"><label>Field to Change</label>
+      <select id="cr_field">
+        <option>Phone</option><option>Email</option><option>Address</option>
+        <option>Emergency Contact</option><option>Bank Account</option><option>IFSC</option>
+      </select>
+    </div>
+    <div class="form-field mb-3"><label>Current Value</label><input id="cr_old" readonly></div>
+    <div class="form-field mb-3"><label>New Value</label><input id="cr_new"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('changeRequestModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitChangeRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG — paste your deployed Apps Script URL here
+// ═══════════════════════════════════════════════════════════════
+const API = "https://script.google.com/macros/s/AKfycbwziv_wNOREU3IVf6xMdpIqZAShDXSZ8YGopFhkQZkFyDRWcgD3gbqXqGFpaC82Wb6Bmg/exec";
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let currentUser  = null;  // { username, fullName, role, employeeId, email }
+let allAssets    = [];
+let allHistory   = [];
+let allEmployees = [];
+let allUsers     = [];
+let allLeaves    = [];
+let allSalary    = [];
+let allLogs      = [];
+let allDocs      = [];
+let webcamStream = null;
+let selectedDocFile = null;
+let currentEmployeeData = null;
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════════
+function api(params) {
+  const url = API + "?" + new URLSearchParams(params).toString();
+  return fetch(url).then(r => r.json());
+}
+
+function toast(msg, type="info") {
+  const el = document.createElement("div");
+  el.className = "toast-item " + type;
+  el.textContent = msg;
+  document.getElementById("toast").appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+function fmt(val) {
+  if (!val) return "—";
+  if (val instanceof Date) return val.toLocaleDateString("en-IN");
+  if (typeof val === "string" && val.match(/^\d{4}-\d{2}-\d{2}T/)) {
+    return new Date(val).toLocaleString("en-IN", {day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  }
+  if (typeof val === "string" && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [y,m,d] = val.split("-");
+    return `${d}/${m}/${y}`;
+  }
+  return val;
+}
+
+function fmtCurrency(n) {
+  if (!n) return "₹0";
+  return "₹" + Number(n).toLocaleString("en-IN");
+}
+
+function badgeForStatus(s) {
+  if (!s) return '<span class="badge badge-gray">—</span>';
+  const map = { Active:"green", Approved:"green", YES:"green", Yes:"green",
+                Pending:"yellow", Inactive:"yellow",
+                Rejected:"red", Exited:"red", NO:"red",
+                "Sandwich Rule May Apply":"yellow" };
+  const cls = map[s] || "gray";
+  return `<span class="badge badge-${cls}">${s}</span>`;
+}
+
+function switchTab(el, id) {
+  const parent = el.parentElement;
+  parent.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  const container = parent.nextElementSibling;
+  if (!container) return;
+  let p = container;
+  while (p) {
+    if (p.id && !p.classList.contains("tabs")) { p.style.display = "none"; }
+    p = p.nextElementSibling;
+  }
+  const target = document.getElementById(id);
+  if (target) target.style.display = "";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById("loginUser").value.trim();
+  const p = document.getElementById("loginPass").value.trim();
+  if (!u || !p) { showLoginError("Please enter username and password"); return; }
+  api({ action:"login", username:u, password:p }).then(r => {
+    if (r.success) {
+      currentUser = { username:u, fullName:r.fullName, role:r.role, employeeId:r.employeeId, email:r.email };
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      initApp();
+    } else {
+      showLoginError(r.error || "Login failed");
+    }
+  }).catch(() => showLoginError("Connection error — check API URL"));
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById("loginError");
+  el.textContent = msg; el.style.display = "flex";
+}
+
+document.getElementById("loginPass").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+document.getElementById("loginUser").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("loginUser").value = "";
+  document.getElementById("loginPass").value = "";
+  if (webcamStream) { webcamStream.getTracks().forEach(t=>t.stop()); webcamStream=null; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  APP INIT
+// ═══════════════════════════════════════════════════════════════
+function initApp() {
+  document.getElementById("sidebarName").textContent = currentUser.fullName;
+  const roleLabels = { Employee:"Employee", SuperUser:"Super User", Admin:"Admin", Manager:"Manager ✦" };
+  const roleCls    = { Employee:"role-employee", SuperUser:"role-superuser", Admin:"role-admin", Manager:"role-manager" };
+  const rb = document.getElementById("sidebarRoleBadge");
+  rb.textContent = roleLabels[currentUser.role] || currentUser.role;
+  rb.className = "role-badge " + (roleCls[currentUser.role] || "role-employee");
+
+  applyRBAC();
+  startClock();
+  loadDashboard();
+}
+
+function applyRBAC() {
+  const role = currentUser.role;
+  document.querySelectorAll(".hide-employee").forEach(el =>
+    el.style.display = role === "Employee" ? "none" : "");
+  document.querySelectorAll(".hide-superuser").forEach(el =>
+    el.style.display = (role === "Employee" || role === "SuperUser") ? "none" : "");
+  document.querySelectorAll(".admin-only").forEach(el =>
+    el.style.display = (role === "Admin" || role === "Manager") ? "" : "none");
+  document.querySelectorAll(".manager-only").forEach(el =>
+    el.style.display = role === "Manager" ? "" : "none");
+}
+
+function navigate(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+  document.querySelector(`[data-page="${page}"]`)?.classList.add("active");
+  document.querySelector(".sidebar")?.classList.remove("open");
+
+  const loaders = {
+    dashboard: loadDashboard,
+    employees: loadEmployees,
+    attendance: () => {},
+    leaves:    loadLeaves,
+    assets:    loadAssets,
+    documents: loadDocumentPage,
+    users:     loadUsers,
+    finance:   loadFinance,
+    logs:      loadLogs,
+    profile:   loadMyProfile
+  };
+  if (loaders[page]) loaders[page]();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════════════════════
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const clockEl = document.getElementById("liveClock");
+    const dateEl  = document.getElementById("liveDate");
+    if (clockEl) clockEl.textContent = now.toLocaleTimeString("en-IN", {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    if (dateEl) dateEl.textContent = now.toLocaleDateString("en-IN", {weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+async function loadDashboard() {
+  const hour = new Date().getHours();
+  const greet = hour<12?"Good morning":"hour<17?Good afternoon":"Good evening";
+  document.getElementById("dashGreeting").textContent = `${hour<12?"Good morning":hour<17?"Good afternoon":"Good evening"}, ${currentUser.fullName} 👋`;
+
+  // Parallel loads
+  const [assetsR, leavesR] = await Promise.all([
+    api({action:"getAllAssets"}),
+    api({action:"getLeaves", employeeId: currentUser.employeeId||currentUser.username})
+  ]);
+
+  allAssets = assetsR.assets || [];
+  const myLeaves = (leavesR.leaves || []).filter(l =>
+    l["Employee ID"] === (currentUser.employeeId||currentUser.username));
+
+  const myAssets = allAssets.filter(a =>
+    String(a["Current Holder"]||"").toLowerCase().includes(currentUser.fullName.toLowerCase()) ||
+    String(a["Current Holder"]||"").toLowerCase().includes((currentUser.employeeId||"").toLowerCase()));
+
+  // Stats
+  const stats = [
+    {label:"Total Assets",  value: allAssets.length, color:"var(--accent)"},
+    {label:"My Assets",     value: myAssets.length,  color:"var(--accent2)"},
+    {label:"Leave Applied", value: myLeaves.length,  color:"var(--gold)"},
+    {label:"Pending Leaves",value: myLeaves.filter(l=>l.Status==="Pending").length, color:"var(--warn)"}
+  ];
+  document.getElementById("dashStats").innerHTML = stats.map(s =>
+    `<div class="stat-card"><div class="stat-label">${s.label}</div>
+     <div class="stat-value" style="color:${s.color}">${s.value}</div></div>`
+  ).join("");
+
+  // Recent leaves
+  const leavesHtml = myLeaves.slice(-5).reverse().map(l =>
+    `<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--border);">
+      <div><div style="font-size:13px;">${l["Leave Type"]||"—"}</div>
+        <div class="text-muted" style="font-size:11px;">${fmt(l["From Date"])} – ${fmt(l["To Date"])}</div></div>
+      ${badgeForStatus(l.Status)}
+    </div>`).join("") || '<div class="empty-state"><div>No leaves applied</div></div>';
+  document.getElementById("dashLeaves").innerHTML = leavesHtml;
+
+  // My assets
+  const assetsHtml = myAssets.slice(0,5).map(a =>
+    `<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--border);">
+      <div><div style="font-size:13px;">${a["Asset Name"]||"—"}</div>
+        <div class="text-muted" style="font-size:11px;">${a["Asset ID"]||""} · ${a.Category||""}</div></div>
+      ${badgeForStatus(a.Condition||"Good")}
+    </div>`).join("") || '<div class="empty-state"><div>No assets assigned</div></div>';
+  document.getElementById("dashAssets").innerHTML = assetsHtml;
+
+  // Today's attendance
+  const today = new Date().toISOString().split("T")[0];
+  const attR = await api({action:"getAttendance", employeeId: currentUser.employeeId||currentUser.username, date:today});
+  const todayPunches = attR.attendance || [];
+  const attHtml = todayPunches.length
+    ? todayPunches.map(p=>`<span class="badge ${p["Punch Type"]==="IN"||p["Punch Type"]==="Punch In"?"badge-green":"badge-yellow"}">${p["Punch Type"]} ${fmt(p.Timestamp)}</span>`).join(" ")
+    : '<span class="text-muted" style="font-size:13px;">No punches today</span>';
+  document.getElementById("dashAttendance").innerHTML = attHtml;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════════════════
+async function loadMyProfile() {
+  const empId = currentUser.employeeId || currentUser.username;
+  const r = await api({action:"getEmployee", employeeId: empId});
+  currentEmployeeData = r.employee;
+  const e = r.employee;
+  if (!e) {
+    document.getElementById("profileContent").innerHTML =
+      `<div class="alert alert-info">No profile found for your account. Ask your admin to create an employee profile for you.<br><br>
+      ${currentUser.role==="Employee"?"":"<button class='btn btn-primary btn-sm' onclick='openAddEmployeeModal()'>Create My Profile</button>"}</div>`;
+    return;
+  }
+
+  const crR = await api({action:"getChangeRequests", employeeId: empId});
+  const pendingCR = (crR.requests||[]).filter(r=>r.Status==="Pending");
+
+  const photoSrc = e["Photo URL"] || "https://ui-avatars.com/api/?name=" + encodeURIComponent(e["Full Name"]||"?") + "&background=6c63ff&color=fff&size=80";
+
+  const isReadOnly = currentUser.role === "Employee";
+  const readOnlyNote = isReadOnly ? `<div class="alert alert-info mt-3" style="font-size:12px;">Your profile is read-only. Use "Request Change" to update editable fields.</div>` : "";
+
+  document.getElementById("profileContent").innerHTML = `
+    <div class="profile-header">
+      <img src="${photoSrc}" class="profile-avatar" onerror="this.src='https://ui-avatars.com/api/?name=?&background=6c63ff&color=fff&size=80'">
+      <div class="profile-info">
+        <h2>${e["Full Name"]||"—"}</h2>
+        <p>${e.Designation||"—"} · ${e.Department||"—"}</p>
+        <div class="profile-meta">
+          ${badgeForStatus(e.Status||"Active")}
+          <span class="tag">${e["Employment Type"]||"Full-Time"}</span>
+          <span class="tag">Joined ${fmt(e["Date of Joining"])}</span>
+        </div>
+      </div>
+      ${!isReadOnly?`<button class="btn btn-ghost btn-sm" onclick="openEditEmployeeModal('${empId}')">✏ Edit</button>`:""}
+    </div>
+    ${readOnlyNote}
+
+    ${pendingCR.length?`<div class="alert alert-warn mb-4">📝 You have ${pendingCR.length} pending change request(s) awaiting admin approval.</div>`:""}
+
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;">Personal Information</div>
+        ${profileRow("Date of Birth", fmt(e["Date of Birth"]))}
+        ${profileRow("Phone", e.Phone, "Phone", isReadOnly, e.Phone)}
+        ${profileRow("Email", e.Email, "Email", isReadOnly, e.Email)}
+        ${profileRow("Address", e.Address, "Address", isReadOnly, e.Address)}
+        ${profileRow("Emergency Contact", e["Emergency Contact"], "Emergency Contact", isReadOnly, e["Emergency Contact"])}
+        ${profileRow("PAN", e.PAN)}
+        ${profileRow("Aadhaar", e.Aadhaar)}
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;">Professional Details</div>
+        ${profileRow("Employee ID", e["Employee ID"])}
+        ${profileRow("Reporting Manager", e["Reporting Manager"])}
+        ${profileRow("Department", e.Department)}
+        ${profileRow("Designation", e.Designation)}
+        ${profileRow("Education", e.Education)}
+        ${profileRow("Experience", e.Experience)}
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;">Bank & Payroll</div>
+        ${profileRow("Bank Account", e["Bank Account"], "Bank Account", isReadOnly, e["Bank Account"])}
+        ${profileRow("IFSC Code", e.IFSC, "IFSC", isReadOnly, e.IFSC)}
+        ${profileRow("PF Number", e["PF Number"])}
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;">Change Request History</div>
+        ${(crR.requests||[]).length===0?"<p class='text-muted' style='font-size:13px;'>No change requests</p>":
+          (crR.requests||[]).slice(-5).reverse().map(r=>
+            `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+              <strong>${r.Field}</strong>: ${r["Old Value"]||"—"} → ${r["New Value"]||"—"}
+              ${badgeForStatus(r.Status)}
+            </div>`).join("")
+        }
+      </div>
+    </div>`;
+}
+
+function profileRow(label, val, editField, showRequest, currentVal) {
+  const display = val || "—";
+  const reqBtn = showRequest
+    ? `<button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:11px;"
+         onclick="openChangeRequestModal('${editField}','${currentVal||""}')">Request Change</button>`
+    : "";
+  return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(42,47,62,.5);">
+    <span style="font-size:12px;color:var(--muted);">${label}</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:13px;">${display}</span>${reqBtn}
+    </div>
+  </div>`;
+}
+
+function openChangeRequestModal(field, currentVal) {
+  document.getElementById("cr_field").value = field;
+  document.getElementById("cr_old").value = currentVal || "";
+  document.getElementById("cr_new").value = "";
+  openModal("changeRequestModal");
+}
+
+async function submitChangeRequest() {
+  const empId = currentUser.employeeId || currentUser.username;
+  const r = await api({
+    action: "submitChangeRequest",
+    employeeId: empId,
+    employeeName: currentUser.fullName,
+    field: document.getElementById("cr_field").value,
+    oldValue: document.getElementById("cr_old").value,
+    newValue: document.getElementById("cr_new").value
+  });
+  if (r.success) { toast("Change request submitted — pending admin approval","success"); closeModal("changeRequestModal"); }
+  else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EMPLOYEES
+// ═══════════════════════════════════════════════════════════════
+async function loadEmployees() {
+  const r = await api({action:"getAllEmployees"});
+  allEmployees = r.employees || [];
+  // populate dept filter
+  const depts = [...new Set(allEmployees.map(e=>e.Department).filter(Boolean))];
+  const df = document.getElementById("empDeptFilter");
+  df.innerHTML = '<option value="">All Departments</option>' + depts.map(d=>`<option value="${d}">${d}</option>`).join("");
+  // populate doc employee filter
+  const docEf = document.getElementById("docEmpFilter");
+  docEf.innerHTML = '<option value="">Select Employee…</option>' + allEmployees.map(e=>`<option value="${e["Employee ID"]}">${e["Full Name"]}</option>`).join("");
+  const docEf2 = document.getElementById("docEmpSelect");
+  docEf2.innerHTML = '<option value="">Select Employee…</option>' + allEmployees.map(e=>`<option value="${e["Employee ID"]}">${e["Full Name"]} (${e["Employee ID"]})</option>`).join("");
+  // salary modal
+  const salSel = document.getElementById("sal_empid");
+  salSel.innerHTML = '<option value="">Select…</option>' + allEmployees.map(e=>`<option value="${e["Employee ID"]}">${e["Full Name"]} (${e["Employee ID"]})</option>`).join("");
+
+  renderEmployeeTable();
+}
+
+function renderEmployeeTable() {
+  const q    = document.getElementById("empSearch").value.toLowerCase();
+  const dept = document.getElementById("empDeptFilter").value;
+  const stat = document.getElementById("empStatusFilter").value;
+  const role = currentUser.role;
+
+  let filtered = allEmployees.filter(e => {
+    if (role === "SuperUser") {
+      // only see own department
+      const myDept = allEmployees.find(emp => emp["Employee ID"] === (currentUser.employeeId||""))?.Department;
+      if (myDept && e.Department !== myDept) return false;
+    }
+    if (dept && e.Department !== dept) return false;
+    if (stat && e.Status !== stat) return false;
+    if (q) {
+      const s = (e["Employee ID"]||"") + (e["Full Name"]||"") + (e.Department||"") + (e.Designation||"");
+      if (!s.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById("empTableBody");
+  tbody.innerHTML = filtered.length === 0
+    ? `<tr><td colspan="7" class="empty-state">No employees found</td></tr>`
+    : filtered.map(e => {
+        const canEdit = role === "Admin" || role === "Manager";
+        return `<tr>
+          <td>${e["Employee ID"]||"—"}</td>
+          <td><strong>${e["Full Name"]||"—"}</strong></td>
+          <td>${e.Department||"—"}</td>
+          <td>${e.Designation||"—"}</td>
+          <td>${fmt(e["Date of Joining"])}</td>
+          <td>${badgeForStatus(e.Status||"Active")}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="viewEmployeeProfile('${e["Employee ID"]}')">View</button>
+            ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="openEditEmployeeModal('${e["Employee ID"]}')">Edit</button>`:""}
+          </td>
+        </tr>`;
+      }).join("");
+}
+
+function viewEmployeeProfile(empId) {
+  navigate("profile");
+  currentUser._viewingEmpId = empId;
+  loadEmployeeProfileById(empId);
+}
+
+async function loadEmployeeProfileById(empId) {
+  const r = await api({action:"getEmployee", employeeId:empId});
+  const e = r.employee;
+  if (!e) { document.getElementById("profileContent").innerHTML = `<div class="alert alert-error">Employee not found</div>`; return; }
+  const photoSrc = e["Photo URL"] || "https://ui-avatars.com/api/?name=" + encodeURIComponent(e["Full Name"]||"?") + "&background=6c63ff&color=fff&size=80";
+  const crR = await api({action:"getChangeRequests", employeeId:empId});
+  document.getElementById("profileContent").innerHTML = `
+    <div class="alert alert-info mb-4" style="font-size:12px;">Viewing profile of ${e["Full Name"]}</div>
+    <div class="profile-header">
+      <img src="${photoSrc}" class="profile-avatar">
+      <div class="profile-info">
+        <h2>${e["Full Name"]||"—"}</h2>
+        <p>${e.Designation||"—"} · ${e.Department||"—"}</p>
+        <div class="profile-meta">${badgeForStatus(e.Status||"Active")}<span class="tag">${e["Employment Type"]||""}</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openEditEmployeeModal('${empId}')">✏ Edit</button>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;">Personal</div>
+        ${profileRow("DOB",fmt(e["Date of Birth"]))}${profileRow("Phone",e.Phone)}${profileRow("Email",e.Email)}
+        ${profileRow("PAN",e.PAN)}${profileRow("Aadhaar",e.Aadhaar)}${profileRow("Address",e.Address)}
+        ${profileRow("Emergency",e["Emergency Contact"])}
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:12px;">Work</div>
+        ${profileRow("Emp ID",e["Employee ID"])}${profileRow("Dept",e.Department)}${profileRow("Role",e.Designation)}
+        ${profileRow("Joined",fmt(e["Date of Joining"]))}${profileRow("Manager",e["Reporting Manager"])}
+        ${profileRow("Education",e.Education)}
+      </div>
+    </div>
+    <div class="card mt-4">
+      <div style="font-weight:600;margin-bottom:12px;">Pending Change Requests</div>
+      ${(crR.requests||[]).filter(r=>r.Status==="Pending").length===0?"<p class='text-muted' style='font-size:13px;'>None</p>":
+        (crR.requests||[]).filter(r=>r.Status==="Pending").map(r=>
+          `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div><strong>${r.Field}</strong>: ${r["Old Value"]||"—"} → <span class="text-green">${r["New Value"]||"—"}</span></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-success btn-sm" onclick="reviewCR('${r["Request ID"]}','Approved')">✓</button>
+              <button class="btn btn-danger btn-sm" onclick="reviewCR('${r["Request ID"]}','Rejected')">✗</button>
+            </div>
+          </div>`).join("")
+      }
+    </div>`;
+}
+
+async function reviewCR(id, status) {
+  const r = await api({action:"reviewChangeRequest", requestId:id, status, reviewedBy:currentUser.fullName});
+  if (r.success) { toast("Change request " + status.toLowerCase(), "success"); navigate("employees"); }
+}
+
+function openAddEmployeeModal() {
+  document.getElementById("empModalTitle").textContent = "Add Employee";
+  ["emp_id","emp_name","emp_dept","emp_desig","emp_doj","emp_dob","emp_phone","emp_email",
+   "emp_pan","emp_aadhaar","emp_address","emp_edu","emp_exp","emp_emergency",
+   "emp_bank","emp_ifsc","emp_pf","emp_photo","emp_manager"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  document.getElementById("emp_status").value = "Active";
+  document.getElementById("emp_type").value = "Full-Time";
+  openModal("employeeModal");
+}
+
+async function openEditEmployeeModal(empId) {
+  const r = await api({action:"getEmployee", employeeId:empId});
+  const e = r.employee;
+  if (!e) { toast("Employee not found","error"); return; }
+  document.getElementById("empModalTitle").textContent = "Edit Employee";
+  const fields = {
+    emp_id:"Employee ID", emp_name:"Full Name", emp_dept:"Department", emp_desig:"Designation",
+    emp_doj:"Date of Joining", emp_dob:"Date of Birth", emp_phone:"Phone", emp_email:"Email",
+    emp_pan:"PAN", emp_aadhaar:"Aadhaar", emp_address:"Address", emp_edu:"Education",
+    emp_exp:"Experience", emp_emergency:"Emergency Contact", emp_manager:"Reporting Manager",
+    emp_bank:"Bank Account", emp_ifsc:"IFSC", emp_pf:"PF Number", emp_photo:"Photo URL"
+  };
+  for (const [id, key] of Object.entries(fields)) {
+    const el = document.getElementById(id);
+    if (el) el.value = e[key] || "";
+  }
+  document.getElementById("emp_status").value = e.Status || "Active";
+  document.getElementById("emp_type").value   = e["Employment Type"] || "Full-Time";
+  openModal("employeeModal");
+}
+
+async function saveEmployee() {
+  const data = {
+    action:"saveEmployee", doneBy:currentUser.fullName,
+    employeeId: document.getElementById("emp_id").value.trim(),
+    fullName:   document.getElementById("emp_name").value.trim(),
+    department: document.getElementById("emp_dept").value.trim(),
+    designation: document.getElementById("emp_desig").value.trim(),
+    dateOfJoining: document.getElementById("emp_doj").value,
+    dateOfBirth:   document.getElementById("emp_dob").value,
+    phone:   document.getElementById("emp_phone").value.trim(),
+    email:   document.getElementById("emp_email").value.trim(),
+    pan:     document.getElementById("emp_pan").value.trim(),
+    aadhaar: document.getElementById("emp_aadhaar").value.trim(),
+    address: document.getElementById("emp_address").value.trim(),
+    education: document.getElementById("emp_edu").value.trim(),
+    experience: document.getElementById("emp_exp").value.trim(),
+    emergencyContact: document.getElementById("emp_emergency").value.trim(),
+    employmentType: document.getElementById("emp_type").value,
+    reportingManager: document.getElementById("emp_manager").value.trim(),
+    status:    document.getElementById("emp_status").value,
+    photoUrl:  document.getElementById("emp_photo").value.trim(),
+    bankAccount: document.getElementById("emp_bank").value.trim(),
+    ifsc:      document.getElementById("emp_ifsc").value.trim(),
+    pfNumber:  document.getElementById("emp_pf").value.trim()
+  };
+  if (!data.employeeId || !data.fullName) { toast("Employee ID and Full Name required","error"); return; }
+  const r = await api(data);
+  if (r.success) { toast("Employee saved","success"); closeModal("employeeModal"); loadEmployees(); }
+  else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ATTENDANCE
+// ═══════════════════════════════════════════════════════════════
+let hasPunchedIn = false;
+
+async function checkTodayPunch() {
+  const today = new Date().toISOString().split("T")[0];
+  const empId = currentUser.employeeId || currentUser.username;
+  const r = await api({action:"getAttendance", employeeId:empId, date:today});
+  const punches = r.attendance || [];
+  const lastPunch = punches[punches.length-1];
+  const punchBtn   = document.getElementById("punchBtn");
+  const punchLabel = document.getElementById("punchBtnLabel");
+  const punchStatus = document.getElementById("punchStatus");
+
+  const todayDiv = document.getElementById("todayPunches");
+  if (todayDiv) {
+    todayDiv.innerHTML = punches.length
+      ? "<div style='font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);'>TODAY'S PUNCHES</div>" +
+        punches.map(p=>`<div class="flex justify-between" style="font-size:12px;padding:4px 0;"><span>${p["Punch Type"]}</span><span>${fmt(p.Timestamp)}</span></div>`).join("")
+      : "<p class='text-muted' style='font-size:12px;'>No punches today</p>";
+  }
+
+  if (lastPunch && (lastPunch["Punch Type"]==="IN" || lastPunch["Punch Type"]==="Punch In")) {
+    hasPunchedIn = true;
+    if (punchBtn) punchBtn.classList.add("out");
+    if (punchLabel) punchLabel.textContent = "PUNCH OUT";
+    if (punchStatus) punchStatus.textContent = "Last punch in: " + fmt(lastPunch.Timestamp);
+  } else {
+    hasPunchedIn = false;
+    if (punchBtn) punchBtn.classList.remove("out");
+    if (punchLabel) punchLabel.textContent = "PUNCH IN";
+    if (punchStatus) punchStatus.textContent = punches.length ? "Last punch out: " + fmt(lastPunch?.Timestamp) : "Not punched in yet";
+  }
+}
+
+async function doPunch() {
+  const empId = currentUser.employeeId || currentUser.username;
+  const punchType = hasPunchedIn ? "OUT" : "IN";
+
+  // Get GPS
+  let lat = "", lng = "";
+  try {
+    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
+    lat = pos.coords.latitude.toFixed(6);
+    lng = pos.coords.longitude.toFixed(6);
+    document.getElementById("locationInfo").textContent = `📍 ${lat}, ${lng}`;
+  } catch(e) {
+    document.getElementById("locationInfo").textContent = "📍 Location unavailable";
+  }
+
+  // Capture face if webcam active
+  let faceCaptured = "No";
+  if (webcamStream) {
+    try {
+      const canvas = document.getElementById("faceCanvas");
+      const video  = document.getElementById("webcamFeed");
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video,0,0);
+      faceCaptured = "Yes";
+    } catch(e) {}
+  }
+
+  const r = await api({
+    action:"punchAttendance",
+    employeeId: empId,
+    employeeName: currentUser.fullName,
+    punchType,
+    latitude: lat, longitude: lng,
+    faceCaptured,
+    deviceInfo: navigator.userAgent.substring(0,80)
+  });
+
+  if (r.success) {
+    toast(`Punched ${punchType} at ${new Date().toLocaleTimeString("en-IN")}`, "success");
+    checkTodayPunch();
+  } else {
+    toast("Punch failed","error");
+  }
+}
+
+function startWebcam() {
+  navigator.mediaDevices.getUserMedia({video:true}).then(stream => {
+    webcamStream = stream;
+    const v = document.getElementById("webcamFeed");
+    v.srcObject = stream; v.style.display = "block";
+    toast("Camera ready","success");
+  }).catch(() => toast("Camera access denied","error"));
+}
+
+async function loadMyAttendance() {
+  const empId  = currentUser.employeeId || currentUser.username;
+  const month  = document.getElementById("attMonthFilter").value;
+  const r      = await api({action:"getAttendance", employeeId:empId});
+  let records  = r.attendance || [];
+  if (month) records = records.filter(a => a.Date && a.Date.startsWith(month));
+  // Group by date
+  const byDate = {};
+  records.forEach(a => {
+    if (!byDate[a.Date]) byDate[a.Date] = [];
+    byDate[a.Date].push(a);
+  });
+  const tbody = document.getElementById("attRecordsBody");
+  const dates = Object.keys(byDate).sort().reverse();
+  tbody.innerHTML = dates.length === 0
+    ? `<tr><td colspan="5" class="empty-state">No records</td></tr>`
+    : dates.map(date => {
+        const punches  = byDate[date];
+        const inPunch  = punches.find(p=>p["Punch Type"]==="IN"||p["Punch Type"]==="Punch In");
+        const outPunch = punches.find(p=>p["Punch Type"]==="OUT"||p["Punch Type"]==="Punch Out");
+        let hours = "—";
+        if (inPunch && outPunch) {
+          const diff = (new Date(outPunch.Timestamp) - new Date(inPunch.Timestamp)) / 36e5;
+          hours = diff.toFixed(1) + "h";
+        }
+        const loc = inPunch ? (inPunch.Latitude && inPunch.Longitude ? `${inPunch.Latitude}, ${inPunch.Longitude}` : "—") : "—";
+        return `<tr><td>${fmt(date)}</td><td>${inPunch?fmt(inPunch.Timestamp):"—"}</td><td>${outPunch?fmt(outPunch.Timestamp):"—"}</td><td>${hours}</td><td style="font-size:11px;">${loc}</td></tr>`;
+      }).join("");
+}
+
+async function loadAdminAttendance() {
+  const date = document.getElementById("adminDateFilter").value;
+  if (!date) { toast("Select a date","error"); return; }
+  const r = await api({action:"getAttendanceByDate", date});
+  const records = r.attendance || [];
+  const tbody = document.getElementById("adminAttBody");
+  tbody.innerHTML = records.length === 0
+    ? `<tr><td colspan="5" class="empty-state">No records for this date</td></tr>`
+    : records.map(a => `<tr>
+        <td>${a["Employee Name"]||a["Employee ID"]||"—"}</td>
+        <td>${badgeForStatus(a["Punch Type"])}</td>
+        <td>${fmt(a.Timestamp)}</td>
+        <td style="font-size:11px;">${a.Latitude&&a.Longitude?`${a.Latitude}, ${a.Longitude}`:"—"}</td>
+        <td>${badgeForStatus(a["Face Captured"])}</td>
+      </tr>`).join("");
+}
+
+async function loadCorrections() {
+  const r     = await api({action:"getAttendanceCorrections"});
+  const all   = r.corrections || [];
+  const empId = currentUser.employeeId || currentUser.username;
+  const visible = currentUser.role === "Employee" ? all.filter(c=>c["Employee ID"]===empId) : all;
+  const canApprove = currentUser.role === "Admin" || currentUser.role === "Manager";
+  const tbody = document.getElementById("correctionsBody");
+  tbody.innerHTML = visible.length === 0
+    ? `<tr><td colspan="7" class="empty-state">No correction requests</td></tr>`
+    : visible.map(c => `<tr>
+        <td>${c["Request ID"]||"—"}</td>
+        <td>${c["Employee Name"]||c["Employee ID"]||"—"}</td>
+        <td>${fmt(c.Date)}</td>
+        <td>${c["Requested Punch In"]||"—"}</td>
+        <td>${c.Reason||"—"}</td>
+        <td>${badgeForStatus(c.Status)}</td>
+        <td>${canApprove && c.Status==="Pending"
+          ?`<button class="btn btn-success btn-sm" onclick="reviewCorrection('${c["Request ID"]}','Approved')">✓</button>
+             <button class="btn btn-danger btn-sm" onclick="reviewCorrection('${c["Request ID"]}','Rejected')">✗</button>`:"—"}
+        </td>
+      </tr>`).join("");
+}
+
+async function reviewCorrection(id, status) {
+  const r = await api({action:"reviewAttendanceCorrection", requestId:id, status, reviewedBy:currentUser.fullName});
+  if (r.success) { toast("Correction " + status.toLowerCase(), "success"); loadCorrections(); }
+}
+
+function openCorrectionModal() { openModal("correctionModal"); }
+
+async function submitCorrection() {
+  const empId = currentUser.employeeId || currentUser.username;
+  const r = await api({
+    action:"correctAttendance",
+    employeeId: empId,
+    employeeName: currentUser.fullName,
+    date:    document.getElementById("corr_date").value,
+    punchIn: document.getElementById("corr_in").value,
+    punchOut:document.getElementById("corr_out").value,
+    reason:  document.getElementById("corr_reason").value
+  });
+  if (r.success) { toast("Correction request submitted","success"); closeModal("correctionModal"); loadCorrections(); }
+}
+
+function exportAttendanceCSV() {
+  const rows = document.querySelectorAll("#attRecordsBody tr");
+  let csv = "Date,Punch In,Punch Out,Hours,Location\n";
+  rows.forEach(r => {
+    const cells = r.querySelectorAll("td");
+    if (cells.length >= 5) csv += Array.from(cells).map(c=>'"'+c.textContent+'"').join(",") + "\n";
+  });
+  const a = document.createElement("a");
+  a.href = "data:text/csv," + encodeURIComponent(csv);
+  a.download = "attendance_" + currentUser.username + ".csv";
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LEAVES
+// ═══════════════════════════════════════════════════════════════
+async function loadLeaves() {
+  const empId = currentUser.employeeId || currentUser.username;
+  const [leavesR, balR] = await Promise.all([
+    api({action:"getLeaves", employeeId: empId}),
+    api({action:"getLeaveBalance", employeeId: empId, year: new Date().getFullYear()})
+  ]);
+  allLeaves = leavesR.leaves || [];
+  const bal = balR.balance || {};
+
+  document.getElementById("leaveBalanceGrid").innerHTML = `
+    <div class="leave-balance-item"><div class="num text-green">${bal["Earned Leave"]??15}</div><div class="lbl">Earned Leave</div></div>
+    <div class="leave-balance-item"><div class="num text-gold">${bal["Sick Leave"]??7}</div><div class="lbl">Sick Leave</div></div>
+    <div class="leave-balance-item"><div class="num text-red">${bal["LWP Used"]??0}</div><div class="lbl">LWP Used</div></div>`;
+
+  const myLeaves = allLeaves.filter(l => l["Employee ID"] === empId);
+  const tbody = document.getElementById("myLeavesBody");
+  tbody.innerHTML = myLeaves.length === 0
+    ? `<tr><td colspan="8" class="empty-state">No leaves applied</td></tr>`
+    : myLeaves.slice().reverse().map(l => `<tr>
+        <td>${l["Leave ID"]||"—"}</td>
+        <td>${l["Leave Type"]||"—"}</td>
+        <td>${fmt(l["From Date"])}</td>
+        <td>${fmt(l["To Date"])}</td>
+        <td>${l.Days||"—"}</td>
+        <td>${l.Reason||"—"}</td>
+        <td>${badgeForStatus(l.Status)}</td>
+        <td style="font-size:11px;">${l["Sandwich Flag"]||"No"}</td>
+      </tr>`).join("");
+}
+
+function openLeaveModal() { openModal("leaveModal"); }
+
+function calcLeaveDays() {
+  const from = new Date(document.getElementById("lv_from").value);
+  const to   = new Date(document.getElementById("lv_to").value);
+  if (!isNaN(from) && !isNaN(to) && to >= from) {
+    let days = 0;
+    const temp = new Date(from);
+    while (temp <= to) {
+      if (temp.getDay() !== 0 && temp.getDay() !== 6) days++;
+      temp.setDate(temp.getDate()+1);
+    }
+    document.getElementById("lv_days").value = days || 1;
+    // Sandwich check
+    let hasFri = false, hasMon = false;
+    const temp2 = new Date(from);
+    while (temp2 <= to) { if(temp2.getDay()===5)hasFri=true; if(temp2.getDay()===1)hasMon=true; temp2.setDate(temp2.getDate()+1); }
+    document.getElementById("sandwichAlert").style.display = (hasFri && hasMon) ? "flex" : "none";
+  }
+}
+
+async function submitLeave() {
+  const empId = currentUser.employeeId || currentUser.username;
+  const r = await api({
+    action:       "applyLeave",
+    employeeId:   empId,
+    employeeName: currentUser.fullName,
+    leaveType:    document.getElementById("lv_type").value,
+    fromDate:     document.getElementById("lv_from").value,
+    toDate:       document.getElementById("lv_to").value,
+    days:         document.getElementById("lv_days").value || 1,
+    reason:       document.getElementById("lv_reason").value
+  });
+  if (r.success) {
+    toast("Leave application submitted","success");
+    if (r.sandwichFlag && r.sandwichFlag !== "No") toast("⚠️ Sandwich rule flagged: " + r.sandwichFlag, "info");
+    closeModal("leaveModal"); loadLeaves();
+  } else toast("Error: " + r.error, "error");
+}
+
+async function loadAllLeaves() {
+  const status = document.getElementById("leaveStatusFilter").value;
+  const r = await api({action:"getLeaves"});
+  let leaves = r.leaves || [];
+  if (status) leaves = leaves.filter(l => l.Status === status);
+  const canApprove = currentUser.role === "Admin" || currentUser.role === "Manager";
+  const tbody = document.getElementById("allLeavesBody");
+  tbody.innerHTML = leaves.length === 0
+    ? `<tr><td colspan="7" class="empty-state">No leave requests</td></tr>`
+    : leaves.slice().reverse().map(l => `<tr>
+        <td>${l["Employee Name"]||l["Employee ID"]||"—"}</td>
+        <td>${l["Leave Type"]||"—"}</td>
+        <td>${fmt(l["From Date"])} – ${fmt(l["To Date"])}</td>
+        <td>${l.Days||"—"}</td>
+        <td>${badgeForStatus(l.Status)}</td>
+        <td style="font-size:11px;color:${l["Sandwich Flag"]&&l["Sandwich Flag"]!=="No"?"var(--warn)":"var(--muted)"};">${l["Sandwich Flag"]||"No"}</td>
+        <td>${canApprove && l.Status==="Pending"
+          ?`<button class="btn btn-success btn-sm" onclick="reviewLeave('${l["Leave ID"]}','Approved')">✓</button>
+             <button class="btn btn-danger btn-sm" onclick="reviewLeave('${l["Leave ID"]}','Rejected')">✗</button>`:"—"}
+        </td>
+      </tr>`).join("");
+}
+
+async function reviewLeave(id, status) {
+  const r = await api({action:"reviewLeave", leaveId:id, status, reviewedBy:currentUser.fullName});
+  if (r.success) { toast("Leave " + status.toLowerCase(), "success"); loadAllLeaves(); }
+  else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ASSETS
+// ═══════════════════════════════════════════════════════════════
+async function loadAssets() {
+  const [assR, histR] = await Promise.all([
+    api({action:"getAllAssets"}),
+    api({action:"getAllHistory"})
+  ]);
+  allAssets  = assR.assets  || [];
+  allHistory = histR.history || [];
+
+  const cats = [...new Set(allAssets.map(a=>a.Category).filter(Boolean))];
+  const cf = document.getElementById("assetCatFilter");
+  cf.innerHTML = '<option value="">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join("");
+
+  renderAssets();
+  renderMyAssets();
+  renderAssetHistory();
+  renderRecovery();
+}
+
+function renderAssets() {
+  const q   = document.getElementById("assetSearch").value.toLowerCase();
+  const cat = document.getElementById("assetCatFilter").value;
+  const role = currentUser.role;
+  const canEdit = role === "Admin" || role === "Manager";
+
+  let filtered = allAssets.filter(a => {
+    if (cat && a.Category !== cat) return false;
+    if (q) {
+      const s = (a["Asset ID"]||"")+(a["Asset Name"]||"")+(a["Serial Number"]||"")+(a["Current Holder"]||"");
+      if (!s.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById("assetGrid").innerHTML = filtered.length === 0
+    ? `<div class="empty-state"><div class="icon">📦</div><div>No assets found</div></div>`
+    : filtered.map(a => `
+      <div class="asset-card">
+        <div class="a-name">${a["Asset Name"]||"—"}</div>
+        <div class="a-id">${a["Asset ID"]||"—"} · ${a.Category||"—"}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+          ${a["Brand/Model"]||a["brandModel"]||"—"} · S/N: ${a["Serial Number"]||"—"}
+        </div>
+        <div class="a-meta">
+          <span>${badgeForStatus(a.Condition||"Good")}</span>
+          <span style="font-size:12px;color:var(--muted);">${a["Current Holder"]||"Unassigned"}</span>
+        </div>
+        ${canEdit?`<div class="flex gap-2 mt-3">
+          <button class="btn btn-ghost btn-sm" onclick="openAllocateModal('${a["Asset ID"]}','${a["Asset Name"]}','Allocated')">Issue</button>
+          <button class="btn btn-ghost btn-sm" onclick="openAllocateModal('${a["Asset ID"]}','${a["Asset Name"]}','Returned')">Return</button>
+          <button class="btn btn-danger btn-sm manager-only" onclick="deleteAsset('${a["Asset ID"]}','${a["Asset Name"]}')">Del</button>
+        </div>`:""}
+      </div>`).join("");
+}
+
+function renderMyAssets() {
+  const empId   = (currentUser.employeeId || currentUser.username || "").toLowerCase();
+  const empName = (currentUser.fullName || "").toLowerCase();
+  const myA = allAssets.filter(a => {
+    const holder = (a["Current Holder"]||"").toLowerCase();
+    return holder === empId || holder.includes(empName) || holder.includes(empId);
+  });
+  const tbody = document.getElementById("myAssetsBody");
+  tbody.innerHTML = myA.length === 0
+    ? `<tr><td colspan="6" class="empty-state">No assets assigned to you</td></tr>`
+    : myA.map(a => `<tr>
+        <td>${a["Asset ID"]||"—"}</td><td>${a["Asset Name"]||"—"}</td>
+        <td>${a.Category||"—"}</td><td>${a["Serial Number"]||"—"}</td>
+        <td>${fmt(a["Last Updated"]||a["Purchase Date"])}</td>
+        <td>${badgeForStatus(a.Condition||"Good")}</td>
+      </tr>`).join("");
+}
+
+function renderAssetHistory() {
+  const tbody = document.getElementById("assetHistBody");
+  tbody.innerHTML = allHistory.length === 0
+    ? `<tr><td colspan="6" class="empty-state">No history</td></tr>`
+    : allHistory.slice().reverse().slice(0,100).map(h => `<tr>
+        <td>${fmt(h.Timestamp)}</td>
+        <td>${h["Asset Name"]||"—"}</td>
+        <td>${badgeForStatus(h["Action Type"]||"—")}</td>
+        <td>${h["Issued To"]||"—"}</td>
+        <td>${h["Received From"]||"—"}</td>
+        <td>${h["Done By"]||"—"}</td>
+      </tr>`).join("");
+}
+
+function renderRecovery() {
+  if (!allEmployees.length) return;
+  const exitedEmps = allEmployees.filter(e => e.Status==="Exited"||e.Status==="Inactive").map(e=>(e["Full Name"]||"").toLowerCase());
+  const tbody = document.getElementById("recoveryBody");
+  const flagged = allAssets.filter(a => {
+    const holder = (a["Current Holder"]||"").toLowerCase();
+    return holder && holder !== "unassigned" && exitedEmps.some(en => holder.includes(en) || en.includes(holder));
+  });
+  tbody.innerHTML = flagged.length === 0
+    ? `<tr><td colspan="5" class="empty-state">No outstanding recoveries 🎉</td></tr>`
+    : flagged.map(a => `<tr>
+        <td>${a["Asset Name"]||"—"}</td>
+        <td>${a["Serial Number"]||"—"}</td>
+        <td><span class="red-flag">${a["Current Holder"]||"—"}</span></td>
+        <td>${a.Department||"—"}</td>
+        <td><span class="badge badge-red">🚩 Not Returned</span></td>
+      </tr>`).join("");
+}
+
+function openAddAssetModal() {
+  document.getElementById("assetModalTitle").textContent = "Add New Asset";
+  ["a_id","a_name","a_brand","a_serial","a_pdate","a_cost","a_holder","a_dept","a_desc"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  openModal("addAssetModal");
+}
+
+async function checkSerial() {
+  const serial = document.getElementById("a_serial").value.trim();
+  if (!serial) return;
+  const r = await api({action:"checkSerial", serial});
+  if (r.duplicate) toast(`⚠️ Serial already exists: ${r.assetName} (${r.assetId})`, "error");
+}
+
+async function saveAsset() {
+  const data = {
+    action:"addAsset", addedBy:currentUser.fullName,
+    assetId:    document.getElementById("a_id").value.trim(),
+    assetName:  document.getElementById("a_name").value.trim(),
+    category:   document.getElementById("a_cat").value,
+    brandModel: document.getElementById("a_brand").value.trim(),
+    serialNumber:document.getElementById("a_serial").value.trim(),
+    purchaseDate:document.getElementById("a_pdate").value,
+    purchaseCost:document.getElementById("a_cost").value,
+    condition:  document.getElementById("a_cond").value,
+    currentHolder:document.getElementById("a_holder").value.trim(),
+    department: document.getElementById("a_dept").value.trim(),
+    description:document.getElementById("a_desc").value.trim()
+  };
+  if (!data.assetId || !data.assetName) { toast("Asset ID and Name required","error"); return; }
+  const r = await api(data);
+  if (r.success) { toast("Asset added","success"); closeModal("addAssetModal"); loadAssets(); }
+  else toast("Error: " + r.error, "error");
+}
+
+function openAllocateModal(assetId, assetName, action) {
+  document.getElementById("aa_assetId").value   = assetId;
+  document.getElementById("aa_assetName").value = assetName;
+  document.getElementById("aa_action").value    = action;
+  document.getElementById("assetActionTitle").textContent = action + ": " + assetName;
+  document.getElementById("aa_allocateFields").style.display = action==="Allocated" ? "" : "none";
+  document.getElementById("aa_returnFields").style.display   = action==="Returned"  ? "" : "none";
+  openModal("assetActionModal");
+}
+
+async function doAssetAction() {
+  const assetId   = document.getElementById("aa_assetId").value;
+  const assetName = document.getElementById("aa_assetName").value;
+  const action    = document.getElementById("aa_action").value;
+  const params = {
+    action:"addHistory", doneBy:currentUser.fullName,
+    assetId, assetName, actionType: action,
+    issuedTo:   document.getElementById("aa_issuedTo").value.trim(),
+    receivedFrom:document.getElementById("aa_returnedBy").value.trim(),
+    department: document.getElementById("aa_dept").value.trim(),
+    condition:  action==="Allocated"?document.getElementById("aa_cond").value:document.getElementById("aa_retCond").value,
+    notes:      document.getElementById("aa_notes").value.trim()
+  };
+  const r = await api(params);
+  if (r.success) {
+    // also update asset record
+    await api({
+      action:"updateAsset", assetId,
+      currentHolder: action==="Allocated" ? params.issuedTo : "Unassigned",
+      condition: params.condition,
+      department: params.department
+    });
+    toast(action + " recorded","success");
+    closeModal("assetActionModal");
+    loadAssets();
+  } else toast("Error","error");
+}
+
+async function deleteAsset(id, name) {
+  if (!confirm(`Delete asset "${name}"? This cannot be undone.`)) return;
+  const r = await api({action:"deleteAsset", assetId:id, assetName:name, deletedBy:currentUser.fullName});
+  if (r.success) { toast("Asset deleted","success"); loadAssets(); }
+  else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DOCUMENTS
+// ═══════════════════════════════════════════════════════════════
+async function loadDocumentPage() {
+  if (!allEmployees.length) await loadEmployees();
+}
+
+async function loadDocuments() {
+  const empId = document.getElementById("docEmpFilter").value;
+  if (!empId) return;
+  const r = await api({action:"getDocuments", employeeId:empId});
+  const docs = r.documents || [];
+  const canPreview = currentUser.role === "Admin" || currentUser.role === "Manager";
+  const tbody = document.getElementById("docTableBody");
+  tbody.innerHTML = docs.length === 0
+    ? `<tr><td colspan="5" class="empty-state">No documents uploaded for this employee</td></tr>`
+    : docs.map(d => `<tr>
+        <td>${d["Doc Type"]||"—"}</td>
+        <td>${d["File Name"]||"—"}</td>
+        <td>${d["Uploaded By"]||"—"}</td>
+        <td>${fmt(d.Timestamp)}</td>
+        <td>
+          ${canPreview?`<a href="${d["Drive URL"]}" target="_blank" class="btn btn-ghost btn-sm">Preview</a>
+          <button class="btn btn-ghost btn-sm" onclick="printDoc('${d["Drive URL"]}')">Print</button>`:"—"}
+        </td>
+      </tr>`).join("");
+}
+
+function printDoc(url) {
+  const w = window.open(url,"_blank");
+  if (w) setTimeout(()=>{try{w.print();}catch(e){}}, 2000);
+}
+
+function openUploadDocModal() {
+  if (!allEmployees.length) { toast("Load employees first","error"); return; }
+  selectedDocFile = null;
+  document.getElementById("docFilePreview").textContent = "";
+  openModal("uploadDocModal");
+}
+
+function handleDocFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) {
+    selectedDocFile = file;
+    document.getElementById("docFilePreview").textContent = "📎 " + file.name + " (" + (file.size/1024).toFixed(1) + " KB)";
+  }
+}
+
+async function uploadDocument() {
+  const empId   = document.getElementById("docEmpSelect").value;
+  const empName = allEmployees.find(e=>e["Employee ID"]===empId)?.["Full Name"] || empId;
+  const docType = document.getElementById("docType").value;
+  if (!empId || !selectedDocFile) { toast("Select employee and file","error"); return; }
+  toast("Uploading…","info");
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    const base64 = ev.target.result.split(",")[1];
+    const r = await api({
+      action:"uploadDocument",
+      employeeId:empId, employeeName:empName, docType,
+      filename: selectedDocFile.name,
+      mimeType: selectedDocFile.type,
+      data: base64,
+      uploadedBy: currentUser.fullName
+    });
+    if (r.success) { toast("Document uploaded","success"); closeModal("uploadDocModal"); loadDocuments(); }
+    else toast("Upload failed: " + r.error, "error");
+  };
+  reader.readAsDataURL(selectedDocFile);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  USERS
+// ═══════════════════════════════════════════════════════════════
+async function loadUsers() {
+  const r = await api({action:"getUsers"});
+  allUsers = r.users || [];
+  renderUserTable();
+}
+
+function renderUserTable() {
+  const isManager = currentUser.role === "Manager";
+  const isAdmin   = currentUser.role === "Admin" || isManager;
+  const tbody = document.getElementById("userTableBody");
+  tbody.innerHTML = allUsers.length === 0
+    ? `<tr><td colspan="5" class="empty-state">No users</td></tr>`
+    : allUsers.map(u => `<tr>
+        <td>${u.username}</td>
+        <td>${u.fullName}</td>
+        <td><span class="badge badge-purple">${u.role}</span></td>
+        <td>${badgeForStatus(String(u.active).toUpperCase())}</td>
+        <td>
+          ${isAdmin?`<button class="btn btn-ghost btn-sm" onclick="openEditUserModal('${u.username}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleUser('${u.username}')">${String(u.active).toUpperCase()==="YES"?"Deactivate":"Activate"}</button>`:""}
+          ${isManager?`<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.username}')">Delete</button>`:""}
+        </td>
+      </tr>`).join("");
+}
+
+function openAddUserModal() {
+  document.getElementById("userModalTitle").textContent = "Add User";
+  ["u_user","u_pass","u_name","u_empid","u_email"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("u_role").value = "Employee";
+  openModal("addUserModal");
+}
+
+async function saveUser() {
+  const r = await api({
+    action:"addUser", addedBy:currentUser.fullName,
+    username: document.getElementById("u_user").value.trim(),
+    password: document.getElementById("u_pass").value.trim(),
+    fullName: document.getElementById("u_name").value.trim(),
+    role:     document.getElementById("u_role").value,
+    employeeId:document.getElementById("u_empid").value.trim(),
+    email:    document.getElementById("u_email").value.trim()
+  });
+  if (r.success) { toast("User added","success"); closeModal("addUserModal"); loadUsers(); }
+  else toast("Error: " + r.error, "error");
+}
+
+function openEditUserModal(username) {
+  document.getElementById("eu_username").value = username;
+  document.getElementById("eu_role").value = "";
+  document.getElementById("eu_pass").value = "";
+  openModal("editUserModal");
+}
+
+async function saveEditUser() {
+  const r = await api({
+    action:"editUser", doneBy:currentUser.fullName,
+    username:    document.getElementById("eu_username").value,
+    newRole:     document.getElementById("eu_role").value,
+    newPassword: document.getElementById("eu_pass").value
+  });
+  if (r.success) { toast("User updated: " + r.changed,"success"); closeModal("editUserModal"); loadUsers(); }
+  else toast("Error: " + r.error, "error");
+}
+
+async function toggleUser(username) {
+  const r = await api({action:"toggleUser", username, doneBy:currentUser.fullName});
+  if (r.success) { toast("User " + (r.newStatus==="YES"?"activated":"deactivated"),"success"); loadUsers(); }
+}
+
+async function deleteUser(username) {
+  if (!confirm(`Delete user "${username}"? Cannot be undone.`)) return;
+  const r = await api({action:"deleteUser", username, doneBy:currentUser.fullName});
+  if (r.success) { toast("User deleted","success"); loadUsers(); }
+  else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FINANCE
+// ═══════════════════════════════════════════════════════════════
+async function loadFinance() {
+  if (currentUser.role !== "Manager") {
+    document.getElementById("page-finance").innerHTML = `<div class="alert alert-error">Access restricted to Manager role only.</div>`;
+    return;
+  }
+  const [salR, empR] = await Promise.all([
+    api({action:"getSalaryData"}),
+    api({action:"getAllEmployees"})
+  ]);
+  allSalary    = salR.salary    || [];
+  allEmployees = empR.employees || [];
+
+  // Stats
+  const activeEmps = allEmployees.filter(e=>e.Status==="Active").length;
+  const activeSalArr = allSalary.filter(s=>s.Status==="Active");
+  const exitedSalArr = allSalary.filter(s=>s.Status==="Exited");
+  const totalActiveMonthly = activeSalArr.reduce((s,e)=>s+(parseFloat(e["Current CTC"])||0),0)/12;
+  const totalExitedHistoric = exitedSalArr.reduce((s,e)=>s+(parseFloat(e["Current CTC"])||0),0);
+
+  document.getElementById("finStats").innerHTML = [
+    {label:"Active Employees", value:activeEmps, color:"var(--accent2)"},
+    {label:"Monthly Payroll",  value:fmtCurrency(Math.round(totalActiveMonthly)), color:"var(--accent)"},
+    {label:"Avg CTC (Active)", value:fmtCurrency(Math.round(activeSalArr.length?totalActiveMonthly*12/activeSalArr.length:0)), color:"var(--gold)"},
+    {label:"Exited Employees", value:exitedSalArr.length, color:"var(--warn)"}
+  ].map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value" style="color:${s.color}">${s.value}</div></div>`).join("");
+
+  // Salary table
+  const tbody = document.getElementById("salaryTableBody");
+  tbody.innerHTML = allSalary.length===0
+    ? `<tr><td colspan="7" class="empty-state">No salary records yet</td></tr>`
+    : allSalary.map(s=>`<tr>
+        <td>${s["Employee Name"]||"—"}</td><td>${s.Department||"—"}</td>
+        <td>${fmtCurrency(s["Starting CTC"])}</td><td>${fmtCurrency(s["Current CTC"])}</td>
+        <td>${fmt(s["Last Increment Date"])}</td><td>${s["Last Increment %"]||"—"}</td>
+        <td>${badgeForStatus(s.Status||"Active")}</td>
+      </tr>`).join("");
+
+  // Analytics
+  document.getElementById("activeSpend").textContent = fmtCurrency(Math.round(totalActiveMonthly)) + "/mo";
+  document.getElementById("exitedSpend").textContent = fmtCurrency(Math.round(totalExitedHistoric));
+
+  // Dept breakdown
+  const byDept = {};
+  activeSalArr.forEach(s => {
+    const d = s.Department||"Unknown";
+    byDept[d] = (byDept[d]||0) + (parseFloat(s["Current CTC"])||0);
+  });
+  const sortedDepts = Object.entries(byDept).sort((a,b)=>b[1]-a[1]);
+  document.getElementById("highestPaidDepts").innerHTML = sortedDepts.slice(0,5).map(([d,v])=>
+    `<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--border);">
+      <span>${d}</span><span style="font-family:var(--font-h);font-weight:700;">${fmtCurrency(Math.round(v/12))}/mo</span>
+    </div>`).join("");
+
+  // Projected spend (next quarter = +3%)
+  const projMonthly = totalActiveMonthly * 1.03;
+  document.getElementById("projectedSpend").innerHTML = `
+    <div class="grid-3">
+      <div class="stat-card"><div class="stat-label">Current Monthly</div><div class="stat-value" style="font-size:22px;">${fmtCurrency(Math.round(totalActiveMonthly))}</div></div>
+      <div class="stat-card"><div class="stat-label">Projected Q1 (3% inc)</div><div class="stat-value" style="font-size:22px;color:var(--gold);">${fmtCurrency(Math.round(projMonthly))}</div></div>
+      <div class="stat-card"><div class="stat-label">Quarterly Spend</div><div class="stat-value" style="font-size:22px;color:var(--warn);">${fmtCurrency(Math.round(projMonthly*3))}</div></div>
+    </div>`;
+
+  // Monthly burn chart (simple bar chart using salary data)
+  renderMonthlyBurnChart(activeSalArr);
+  renderDeptChart(sortedDepts);
+
+  // Manage salaries table
+  renderSalaryManageTable();
+}
+
+function renderMonthlyBurnChart(data) {
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthly = Array(12).fill(0);
+  const total = data.reduce((s,e)=>s+(parseFloat(e["Current CTC"])||0),0)/12;
+  monthly.fill(total);
+  const max = Math.max(...monthly) || 1;
+  document.getElementById("monthlyBurnChart").innerHTML = months.map((m,i)=>
+    `<div class="bar-wrap"><div class="bar" style="height:${(monthly[i]/max)*100}%;background:linear-gradient(to top,var(--accent),var(--accent2));opacity:${0.5+i*0.04};"></div><div class="bar-lbl">${m}</div></div>`
+  ).join("");
+}
+
+function renderDeptChart(sortedDepts) {
+  const max = sortedDepts.length ? sortedDepts[0][1] : 1;
+  document.getElementById("deptSpendChart").innerHTML = sortedDepts.slice(0,8).map(([d,v])=>
+    `<div class="bar-wrap"><div class="bar" style="height:${(v/max)*100}%;background:linear-gradient(to top,var(--gold),var(--warn));"></div><div class="bar-lbl" style="max-width:40px;overflow:hidden;text-overflow:ellipsis;">${d.substring(0,6)}</div></div>`
+  ).join("");
+}
+
+function renderSalaryManageTable() {
+  const tbody = document.getElementById("salaryManageBody");
+  tbody.innerHTML = allSalary.length===0
+    ? `<tr><td colspan="7" class="empty-state">No salary records</td></tr>`
+    : allSalary.map(s=>`<tr>
+        <td>${s["Employee Name"]||"—"}</td><td>${s.Department||"—"}</td>
+        <td>${fmtCurrency(s["Starting CTC"])}</td><td>${fmtCurrency(s["Current CTC"])}</td>
+        <td>${fmt(s["Last Increment Date"])}</td><td>${s["Last Increment %"]||"—"}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="editSalaryRecord('${s["Employee ID"]}')">Edit</button>
+        </td>
+      </tr>`).join("");
+}
+
+function openSalaryModal() {
+  document.getElementById("sal_empid").value = "";
+  ["sal_name","sal_dept","sal_doj","sal_start","sal_current","sal_incDate","sal_incPct","sal_exit","sal_notes"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("sal_status").value = "Active";
+  openModal("salaryModal");
+}
+
+async function editSalaryRecord(empId) {
+  const existing = allSalary.find(s=>s["Employee ID"]===empId);
+  if (!existing) return;
+  document.getElementById("sal_empid").value    = empId;
+  document.getElementById("sal_name").value     = existing["Employee Name"]||"";
+  document.getElementById("sal_dept").value     = existing.Department||"";
+  document.getElementById("sal_doj").value      = existing["Joining Date"]||"";
+  document.getElementById("sal_start").value    = existing["Starting CTC"]||"";
+  document.getElementById("sal_current").value  = existing["Current CTC"]||"";
+  document.getElementById("sal_incDate").value  = existing["Last Increment Date"]||"";
+  document.getElementById("sal_incPct").value   = existing["Last Increment %"]||"";
+  document.getElementById("sal_status").value   = existing.Status||"Active";
+  document.getElementById("sal_exit").value     = existing["Exit Date"]||"";
+  openModal("salaryModal");
+}
+
+function prefillSalaryFromEmp() {
+  const empId = document.getElementById("sal_empid").value;
+  const emp = allEmployees.find(e=>e["Employee ID"]===empId);
+  if (emp) {
+    document.getElementById("sal_name").value = emp["Full Name"]||"";
+    document.getElementById("sal_dept").value = emp.Department||"";
+    document.getElementById("sal_doj").value  = emp["Date of Joining"]||"";
+  }
+}
+
+async function saveSalary() {
+  const empId    = document.getElementById("sal_empid").value;
+  const oldCTC   = allSalary.find(s=>s["Employee ID"]===empId)?.["Current CTC"] || 0;
+  const newCTC   = document.getElementById("sal_current").value;
+  const r = await api({
+    action:"saveSalary", doneBy:currentUser.fullName,
+    employeeId:        empId,
+    employeeName:      document.getElementById("sal_name").value,
+    department:        document.getElementById("sal_dept").value,
+    joiningDate:       document.getElementById("sal_doj").value,
+    startingCTC:       document.getElementById("sal_start").value,
+    currentCTC:        newCTC,
+    lastIncrementDate: document.getElementById("sal_incDate").value,
+    lastIncrementPct:  document.getElementById("sal_incPct").value,
+    status:            document.getElementById("sal_status").value,
+    exitDate:          document.getElementById("sal_exit").value
+  });
+  if (r.success) {
+    // Add ledger entry if CTC changed
+    if (oldCTC && oldCTC != newCTC) {
+      await api({
+        action:"addSalaryLedgerEntry", doneBy:currentUser.fullName,
+        employeeId:   empId,
+        employeeName: document.getElementById("sal_name").value,
+        eventType:"Increment",
+        oldCTC, newCTC,
+        changePct: document.getElementById("sal_incPct").value,
+        effectiveDate:document.getElementById("sal_incDate").value,
+        notes: document.getElementById("sal_notes").value
+      });
+    }
+    toast("Salary saved","success"); closeModal("salaryModal"); loadFinance();
+  } else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOGS
+// ═══════════════════════════════════════════════════════════════
+async function loadLogs() {
+  const r = await api({action:"getLogs", limit:500});
+  allLogs = r.logs || [];
+  renderLogs();
+}
+
+function renderLogs() {
+  const q = document.getElementById("logSearch").value.toLowerCase();
+  const filtered = allLogs.filter(l => !q || JSON.stringify(l).toLowerCase().includes(q));
+  const tbody = document.getElementById("logsBody");
+  tbody.innerHTML = filtered.length===0
+    ? `<tr><td colspan="5" class="empty-state">No logs</td></tr>`
+    : filtered.map(l=>`<tr>
+        <td style="font-size:11px;white-space:nowrap;">${fmt(l.Timestamp)}</td>
+        <td><span class="tag">${l.Action||"—"}</span></td>
+        <td>${l["Asset Name"]||l["Asset ID"]||"—"}</td>
+        <td>${l["Done By"]||"—"}</td>
+        <td style="font-size:12px;color:var(--muted);">${l.Details||"—"}</td>
+      </tr>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CHANGE PASSWORD
+// ═══════════════════════════════════════════════════════════════
+function showChangePwModal() { openModal("changePwModal"); }
+
+async function doChangePassword() {
+  const oldPw  = document.getElementById("cpOld").value;
+  const newPw  = document.getElementById("cpNew").value;
+  const confPw = document.getElementById("cpConfirm").value;
+  if (!oldPw || !newPw) { toast("Fill all fields","error"); return; }
+  if (newPw !== confPw) { toast("New passwords don't match","error"); return; }
+  if (newPw.length < 6) { toast("Password must be at least 6 characters","error"); return; }
+  const r = await api({action:"changePassword", username:currentUser.username, oldPassword:oldPw, newPassword:newPw, doneBy:currentUser.fullName});
+  if (r.success) { toast("Password changed","success"); closeModal("changePwModal"); }
+  else toast("Error: " + r.error, "error");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PAGE LOAD HOOKS
+// ═══════════════════════════════════════════════════════════════
+document.querySelector('[data-page="attendance"]').addEventListener("click", () => {
+  setTimeout(() => { checkTodayPunch(); loadMyAttendance(); loadCorrections(); }, 300);
+});
+
+document.querySelector('[data-page="leaves"]').addEventListener("click", () => {
+  setTimeout(() => { loadAllLeaves(); }, 300);
+});
+
+// Set default month filter
+const now = new Date();
+const monthFilter = document.getElementById("attMonthFilter");
+if (monthFilter) monthFilter.value = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0");
+const adminDateFilter = document.getElementById("adminDateFilter");
+if (adminDateFilter) adminDateFilter.value = now.toISOString().split("T")[0];
+</script>
+</body>
+</html>
