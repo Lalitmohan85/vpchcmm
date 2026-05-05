@@ -676,7 +676,16 @@ input[type=file]{display:none}
     <div class="ff"><label>Email</label><input type="email" id="em_email"></div>
     <div class="ff"><label>Employment Type</label><select id="em_type"><option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Intern</option></select></div>
     <div class="ff"><label>Status</label><select id="em_stat"><option>Active</option><option>Inactive</option><option>Exited</option></select></div>
-    <div class="ff"><label>Reporting Manager</label><input id="em_mgr"></div>
+    <div class="ff"><label>Reporting Manager</label>
+      <div class="ac-wrap">
+        <input id="em_mgr_name" placeholder="Search by name or ID…" autocomplete="off"
+          oninput="mgrAC(this)" onblur="setTimeout(()=>document.getElementById('em_mgr_ac').classList.remove('show'),200)">
+        <input type="hidden" id="em_mgr">
+        <div class="ac-list" id="em_mgr_ac"></div>
+      </div>
+      <div id="em_mgr_badge" style="display:none;margin-top:4px;font-size:11px;padding:4px 9px;
+        background:#EEF2FF;border-radius:7px;color:#4338CA;font-weight:600;border:1px solid #C7D2FE"></div>
+    </div>
     <div class="ff"><label>Emergency Contact</label><input id="em_emerg"></div>
     <div class="ff"><label>PAN</label><input id="em_pan"></div>
     <div class="ff"><label>Aadhaar</label><input id="em_aadhaar"></div>
@@ -713,8 +722,8 @@ input[type=file]{display:none}
   <div class="fa"><button class="btn btn-ghost" onclick="closeM('leaveModal')">Cancel</button><button class="btn btn-p" onclick="submitLeave()">Submit</button></div>
 </div></div>
 
-<div class="mo" id="addAstModal"><div class="modal" style="max-width:600px">
-  <div class="mh"><h3>Add Asset</h3><button class="mclose" onclick="closeM('addAstModal')">×</button></div>
+<div class="mo" id="addAstModal"><div class="modal" style="max-width:660px">
+  <div class="mh"><h3>Add Asset</h3><button class="mclose" onclick="closeAddAstModal()">×</button></div>
   <div class="fg">
     <div class="ff"><label>Asset ID *</label><input id="a_id" placeholder="AST-001"></div>
     <div class="ff"><label>Asset Name *</label><input id="a_name"></div>
@@ -727,7 +736,30 @@ input[type=file]{display:none}
     <div class="ff"><label>Department</label><input id="a_dept"></div>
     <div class="ff full"><label>Description</label><textarea id="a_desc" rows="2"></textarea></div>
   </div>
-  <div class="fa"><button class="btn btn-ghost" onclick="closeM('addAstModal')">Cancel</button><button class="btn btn-p" onclick="saveAsset()">Save</button></div>
+  <hr class="divider">
+  <div style="font-size:11px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+    📷 Asset Photos <span style="color:var(--mu);font-weight:500;text-transform:none;letter-spacing:0">(up to 5 — saved to Google Drive)</span>
+  </div>
+  <!-- Camera -->
+  <div class="ast-cam-wrap" id="addAstCamWrap" style="display:none">
+    <video id="addAstCamFeed" muted playsinline autoplay style="width:100%;display:block;border-radius:10px"></video>
+    <canvas id="addAstCamCanvas" style="display:none"></canvas>
+    <button class="cam-snap-btn" onclick="snapAddAstPhoto()" title="Take photo">📷</button>
+  </div>
+  <div class="flex gap2 mb2 fw aic">
+    <button class="btn btn-ghost btn-sm" onclick="startAddAstCam()" id="addAstCamBtn">📷 Camera</button>
+    <button class="btn btn-ghost btn-sm" onclick="stopAddAstCam()" id="addAstStopCamBtn" style="display:none">⏹ Stop</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('addAstFileInput').click()">📁 Upload Files</button>
+    <span style="font-size:11px;color:var(--mu)">JPG / PNG · max 5MB each · up to 5 photos</span>
+  </div>
+  <input type="file" id="addAstFileInput" accept="image/jpeg,image/png,image/webp" multiple onchange="onAddAstFiles(event)" style="display:none">
+  <!-- Captured photo strip -->
+  <div id="addAstPhotoStrip" class="cam-thumb-row mb2"></div>
+  <div id="addAstPhotoCount" style="font-size:11px;color:var(--mu)"></div>
+  <div class="fa mt2">
+    <button class="btn btn-ghost" onclick="closeAddAstModal()">Cancel</button>
+    <button class="btn btn-p" onclick="saveAsset()">💾 Save Asset</button>
+  </div>
 </div></div>
 
 <div class="mo" id="astDetailModal"><div class="modal" style="max-width:800px">
@@ -1194,6 +1226,10 @@ function renderMgrDash(g,todayP,myLvs){
 function loadEmps(){
   api({action:"getAllEmployees"}).then(r=>{
     allEmployees=r.employees||[];
+    // Also refresh allUsers so manager dropdown has role info
+    if(!allUsersCache.length){
+      api({action:"getUsers"}).then(function(ur){allUsersCache=ur.users||[];});
+    }
     var depts=[...new Set(allEmployees.map(e=>e.Department).filter(Boolean))];
     var d=document.getElementById("empDept");
     d.innerHTML='<option value="">All Depts</option>'+depts.map(x=>'<option>'+esc(x)+'</option>').join("");
@@ -1241,10 +1277,12 @@ function renderEmpTable(){
 function openAddEmpModal(){
   document.getElementById("empMTitle").textContent="Add Employee";
   ["em_id","em_name","em_dept","em_desig","em_doj","em_dob","em_phone","em_email","em_mgr",
-   "em_emerg","em_pan","em_aadhaar","em_addr","em_bank","em_ifsc","em_pf","em_edu","em_photo","em_user","em_pass"]
+   "em_emerg","em_pan","em_aadhaar","em_addr","em_bank","em_ifsc","em_pf","em_edu","em_photo","em_user","em_pass","em_mgr","em_mgr_name"]
     .forEach(id=>{var e=document.getElementById(id);if(e)e.value="";});
   document.getElementById("em_stat").value="Active"; document.getElementById("em_type").value="Full-Time";
-  document.getElementById("em_role").value=""; openM("empModal");
+  document.getElementById("em_role").value="";
+  var mb=document.getElementById("em_mgr_badge"); if(mb){mb.style.display="none";mb.textContent="";}
+  openM("empModal");
 }
 function openEditEmp(empId){
   api({action:"getEmployee",employeeId:empId}).then(r=>{
@@ -1252,11 +1290,27 @@ function openEditEmp(empId){
     document.getElementById("empMTitle").textContent="Edit Employee";
     var map={em_id:"Employee ID",em_name:"Full Name",em_dept:"Department",em_desig:"Designation",
       em_doj:"Date of Joining",em_dob:"Date of Birth",em_phone:"Phone",em_email:"Email",
-      em_pan:"PAN",em_aadhaar:"Aadhaar",em_addr:"Address",em_edu:"Education",em_mgr:"Reporting Manager",
+      em_pan:"PAN",em_aadhaar:"Aadhaar",em_addr:"Address",em_edu:"Education",
       em_emerg:"Emergency Contact",em_bank:"Bank Account",em_ifsc:"IFSC Code",em_pf:"PF Number",em_photo:"Photo URL"};
     Object.entries(map).forEach(([k,v])=>{var el=document.getElementById(k);if(el)el.value=e[v]||"";});
     document.getElementById("em_stat").value=e.Status||"Active";
     document.getElementById("em_type").value=e["Employment Type"]||"Full-Time";
+    // Populate manager dropdown display
+    var mgrVal=e["Reporting Manager"]||"";
+    var mgrHidden=document.getElementById("em_mgr");
+    var mgrName=document.getElementById("em_mgr_name");
+    var mgrBadge=document.getElementById("em_mgr_badge");
+    if(mgrHidden)mgrHidden.value=mgrVal;
+    if(mgrName){
+      // Try to find manager name from employees list
+      var mgrEmp=allEmployees.find(function(x){return x["Employee ID"]===mgrVal||(x["Full Name"]||"").toLowerCase()===mgrVal.toLowerCase();});
+      mgrName.value=mgrEmp?(mgrEmp["Full Name"]||mgrVal):mgrVal;
+    }
+    if(mgrBadge&&mgrVal){
+      var mgrEmp2=allEmployees.find(function(x){return x["Employee ID"]===mgrVal||(x["Full Name"]||"").toLowerCase()===mgrVal.toLowerCase();});
+      mgrBadge.style.display="inline-block";
+      mgrBadge.textContent="✓ "+(mgrEmp2?mgrEmp2["Full Name"]+" ("+mgrEmp2["Employee ID"]+")":mgrVal);
+    } else if(mgrBadge){mgrBadge.style.display="none";}
     document.getElementById("em_user").value=""; document.getElementById("em_pass").value="";
     document.getElementById("em_role").value=""; openM("empModal");
   });
@@ -1362,7 +1416,11 @@ function loadProfileById(empId){
         '<div class="card"><div style="font-family:var(--fh);font-weight:700;margin-bottom:12px">Professional</div>'+
           pRow("Employee ID",e["Employee ID"])+pRow("Department",e.Department)+
           pRow("Designation",e.Designation)+pRow("Joining",fmt(e["Date of Joining"]))+
-          pRow("Manager",e["Reporting Manager"])+pRow("Education",e.Education)+'</div>'+
+          pRow("Manager",e["Reporting Manager"]?(function(){
+            var mgrId=e["Reporting Manager"];
+            var mgrE=allEmployees.find(function(x){return x["Employee ID"]===mgrId||(x["Full Name"]||"").toLowerCase()===mgrId.toLowerCase();});
+            return mgrE?(mgrE["Full Name"]+" ("+mgrE["Employee ID"]+")"):(mgrId||"-");
+          })():"-")+pRow("Education",e.Education)+'</div>'+ 
         '<div class="card"><div style="font-family:var(--fh);font-weight:700;margin-bottom:12px">Bank & Payroll</div>'+
           pRow("Bank Account",e["Bank Account"],"Bank Account",rdOnly,e["Bank Account"])+
           pRow("IFSC",e["IFSC Code"]||e.IFSC,"IFSC Code",rdOnly,e["IFSC Code"]||e.IFSC)+
@@ -1836,11 +1894,139 @@ function checkSerial(){
   var s=document.getElementById("a_serial").value.trim(); if(!s)return;
   api({action:"checkSerial",serial:s}).then(r=>{if(r.duplicate)toast("⚠ Serial exists: "+r.assetName+" ("+r.assetId+")","w");});
 }
+// State for add-asset modal photos
+var addAstPhotos=[];    // array of {dataUrl, mimeType, filename}
+var addAstCamStream=null;
+
+function startAddAstCam(){
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .catch(()=>navigator.mediaDevices.getUserMedia({video:true}))
+    .then(function(s){
+      addAstCamStream=s;
+      var v=document.getElementById("addAstCamFeed");
+      v.srcObject=s; v.play();
+      document.getElementById("addAstCamWrap").style.display="block";
+      document.getElementById("addAstStopCamBtn").style.display="inline-flex";
+      document.getElementById("addAstCamBtn").style.display="none";
+    }).catch(function(){toast("Camera not available","e");});
+}
+
+function stopAddAstCam(){
+  if(addAstCamStream){addAstCamStream.getTracks().forEach(function(t){t.stop();});addAstCamStream=null;}
+  document.getElementById("addAstCamWrap").style.display="none";
+  document.getElementById("addAstStopCamBtn").style.display="none";
+  document.getElementById("addAstCamBtn").style.display="inline-flex";
+}
+
+function snapAddAstPhoto(){
+  if(addAstPhotos.length>=5){toast("Maximum 5 photos per asset","w");return;}
+  var v=document.getElementById("addAstCamFeed");
+  var cv=document.getElementById("addAstCamCanvas");
+  cv.width=v.videoWidth||640; cv.height=v.videoHeight||480;
+  cv.getContext("2d").drawImage(v,0,0);
+  var dataUrl=cv.toDataURL("image/jpeg",0.85);
+  var fname="asset-photo-"+Date.now()+".jpg";
+  addAstPhotos.push({dataUrl:dataUrl,mimeType:"image/jpeg",filename:fname});
+  renderAddAstStrip();
+  toast("Photo "+addAstPhotos.length+" captured","s");
+}
+
+function onAddAstFiles(e){
+  var files=Array.from(e.target.files);
+  var remaining=5-addAstPhotos.length;
+  if(remaining<=0){toast("Maximum 5 photos per asset","w");return;}
+  files.slice(0,remaining).forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      addAstPhotos.push({dataUrl:ev.target.result,mimeType:file.type,filename:file.name});
+      renderAddAstStrip();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value="";
+}
+
+function renderAddAstStrip(){
+  var strip=document.getElementById("addAstPhotoStrip");
+  var count=document.getElementById("addAstPhotoCount");
+  if(!strip)return;
+  strip.innerHTML=addAstPhotos.map(function(p,i){
+    return '<div style="position:relative;display:inline-block">'+
+      '<img src="'+p.dataUrl+'" class="cam-thumb" onclick="openLbx('+JSON.stringify(p.dataUrl)+')" title="Click to preview">'+
+      '<button onclick="removeAddAstPhoto('+i+')" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>'+
+    '</div>';
+  }).join("");
+  if(count)count.textContent=addAstPhotos.length>0?addAstPhotos.length+"/5 photo(s) ready to upload":"";
+}
+
+function removeAddAstPhoto(i){
+  addAstPhotos.splice(i,1);
+  renderAddAstStrip();
+}
+
+function closeAddAstModal(){
+  stopAddAstCam();
+  addAstPhotos=[];
+  renderAddAstStrip();
+  ["a_id","a_name","a_brand","a_serial","a_dept","a_desc"].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.value="";
+  });
+  closeM("addAstModal");
+}
+
 function saveAsset(){
   if(!can("canManageAsset")){toast("Not authorized","e");return;}
-  var d={action:"addAsset",addedBy:CU.fullName,assetId:document.getElementById("a_id").value.trim(),assetName:document.getElementById("a_name").value.trim(),category:document.getElementById("a_cat").value,brandModel:document.getElementById("a_brand").value.trim(),serialNumber:document.getElementById("a_serial").value.trim(),purchaseDate:document.getElementById("a_pdate").value,purchaseCost:document.getElementById("a_cost").value,condition:document.getElementById("a_cond").value,department:document.getElementById("a_dept").value.trim(),description:document.getElementById("a_desc").value.trim()};
-  if(!d.assetId||!d.assetName){toast("ID and Name required","e");return;}
-  api(d).then(r=>{if(r.success){toast("Asset added","s");closeM("addAstModal");loadAssets();}else toast("Error: "+(r.error||""),"e");});
+  var assetId=document.getElementById("a_id").value.trim();
+  var assetName=document.getElementById("a_name").value.trim();
+  if(!assetId||!assetName){toast("Asset ID and Name required","e");return;}
+  var d={action:"addAsset",addedBy:CU.fullName,
+    assetId:assetId,assetName:assetName,
+    category:document.getElementById("a_cat").value,
+    brandModel:document.getElementById("a_brand").value.trim(),
+    serialNumber:document.getElementById("a_serial").value.trim(),
+    purchaseDate:document.getElementById("a_pdate").value,
+    purchaseCost:document.getElementById("a_cost").value,
+    condition:document.getElementById("a_cond").value,
+    department:document.getElementById("a_dept").value.trim(),
+    description:document.getElementById("a_desc").value.trim()};
+  // Step 1: Save the asset record
+  api(d).then(function(r){
+    if(!r.success){toast("Error: "+(r.error||""),"e");return;}
+    // Step 2: Upload photos to Drive if any
+    if(addAstPhotos.length===0){
+      toast("✅ Asset saved","s");
+      closeAddAstModal(); loadAssets(); return;
+    }
+    toast("✅ Asset saved — uploading "+addAstPhotos.length+" photo(s) to Drive…","i");
+    var uploaded=0, photoUrls=[];
+    addAstPhotos.forEach(function(photo){
+      var b64=photo.dataUrl.split(",")[1];
+      api({action:"uploadAssetPhoto",assetId:assetId,assetName:assetName,
+           filename:photo.filename,mimeType:photo.mimeType,data:b64,by:CU.fullName})
+      .then(function(pr){
+        uploaded++;
+        if(pr.success&&pr.url)photoUrls.push(pr.url);
+        if(uploaded===addAstPhotos.length){
+          // Step 3: Update asset row with photo URLs
+          if(photoUrls.length){
+            api({action:"updateAsset",assetId:assetId,photoUrls:photoUrls.join(",")}).then(function(){
+              toast("✅ "+photoUrls.length+" photo(s) saved to Drive","s");
+              closeAddAstModal(); loadAssets();
+            });
+          } else {
+            toast("Asset saved (photo upload failed — check Drive folder ID in Settings)","w");
+            closeAddAstModal(); loadAssets();
+          }
+        }
+      }).catch(function(){
+        uploaded++;
+        if(uploaded===addAstPhotos.length){
+          toast("Asset saved (some photos failed)","w");
+          closeAddAstModal(); loadAssets();
+        }
+      });
+    });
+  });
 }
 function openEditAst(assetId){
   var a=allAssets.find(x=>String(x["Asset ID"]).trim()===assetId); if(!a)return;
@@ -2484,6 +2670,70 @@ function openAllPhotos(assetId){
   ["ad-details","ad-photos","ad-history"].forEach(function(id,i){
     var el=document.getElementById(id); if(el)el.style.display=i===1?"":"none";
   });
+}
+
+
+// ── MANAGER AUTOCOMPLETE ─────────────────────────────────────────
+function mgrAC(input){
+  var q=(input.value||"").toLowerCase().trim();
+  var list=document.getElementById("em_mgr_ac");
+  var hidden=document.getElementById("em_mgr");
+  var badge=document.getElementById("em_mgr_badge");
+
+  // Clear selection if user is typing again
+  if(hidden)hidden.value="";
+  if(badge){badge.style.display="none";badge.textContent="";}
+
+  if(!q||q.length<1){list.classList.remove("show");return;}
+
+  // Only show employees who have Manager, Admin, or SuperUser role
+  // i.e. employees whose linked user has a qualifying role
+  var qualifying=allUsers.filter(function(u){
+    return ["Admin","Manager","SuperUser"].includes(u.role)&&
+           String(u.active||"").toUpperCase()==="YES";
+  }).map(function(u){return u.employeeId;});
+
+  var matches=allEmployees.filter(function(e){
+    if(!e["Employee ID"]||!e["Full Name"])return false;
+    if(e.Status==="Exited"||e.Status==="Inactive")return false;
+    var nm=(e["Full Name"]||"").toLowerCase();
+    var id=(e["Employee ID"]||"").toLowerCase();
+    return nm.includes(q)||id.includes(q);
+  }).slice(0,8);
+
+  if(!matches.length){list.classList.remove("show");return;}
+
+  list.innerHTML=matches.map(function(e){
+    var isQual=qualifying.includes(e["Employee ID"]);
+    var roleTag=isQual?'<span style="font-size:9px;background:#EEF2FF;color:#4338CA;padding:1px 5px;border-radius:4px;font-weight:700">Can Approve</span>':'';
+    return '<div class="ac-item" onclick="selMgr('+JSON.stringify(e["Employee ID"])+','+JSON.stringify(e["Full Name"]||"")+','+JSON.stringify(e.Designation||"")+')">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<strong>'+esc(e["Full Name"]||"")+'</strong>'+roleTag+
+      '</div>'+
+      '<div class="ac-sub">'+esc(e["Employee ID"]||"")+" · "+esc(e.Designation||e.Department||"")+'</div>'+
+    '</div>';
+  }).join("");
+  list.classList.add("show");
+}
+
+function selMgr(empId,name,desig){
+  var hidden=document.getElementById("em_mgr");
+  var nameInput=document.getElementById("em_mgr_name");
+  var badge=document.getElementById("em_mgr_badge");
+  var list=document.getElementById("em_mgr_ac");
+  if(hidden)hidden.value=empId;           // store Employee ID as the value
+  if(nameInput)nameInput.value=name;
+  if(badge){
+    badge.style.display="inline-block";
+    badge.textContent="✓ "+name+" ("+empId+")";
+  }
+  if(list)list.classList.remove("show");
+}
+
+function clearMgr(){
+  document.getElementById("em_mgr").value="";
+  document.getElementById("em_mgr_name").value="";
+  var b=document.getElementById("em_mgr_badge"); if(b){b.style.display="none";b.textContent="";}
 }
 
 </script>
