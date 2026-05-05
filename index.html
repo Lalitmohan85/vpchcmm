@@ -422,12 +422,12 @@ input[type=file]{display:none}
       </div>
       <div class="card">
         <div style="font-weight:600;margin-bottom:10px;font-size:14px">📍 Location & Camera</div>
-        <video id="webcamFeed" autoplay muted playsinline style="width:100%;max-width:300px;border-radius:10px;display:none"></video>
+        <video id="webcamFeed" muted playsinline style="width:100%;max-width:300px;border-radius:10px;display:none;background:#1a1a2e"></video>
         <canvas id="faceCanvas" style="display:none"></canvas>
         <div id="locationInfo" class="mt2 tm" style="font-size:12px"></div>
         <button class="btn btn-ghost btn-sm mt3" onclick="startWebcam()">📷 Enable Camera</button>
         <div id="todayPunches" class="mt4"></div>
-        <div class="hide-emp mt4" id="manualPunchSection" style="border-top:1px solid var(--border);padding-top:14px">
+        <div class="admin-only mt4" id="manualPunchSection" style="border-top:1px solid var(--border);padding-top:14px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">⚙ Admin: Manual Punch Edit (Audit Logged)</div>
           <div class="ff mb3"><label>Employee ID</label><input id="mp_empId" placeholder="EMP-001"></div>
           <div class="ff mb3"><label>Date</label><input type="date" id="mp_date"></div>
@@ -796,7 +796,7 @@ input[type=file]{display:none}
 
 <div id="toast"></div>
 <script>
-var API="https://script.google.com/macros/s/AKfycbz5vGjKZVkMrA3fhLcdPZhbD3HmcC0M0q5PlH5hvlFpCOnO355lv_beLjEEprs_hkbrlQ/exec";
+var API="https://script.google.com/macros/s/AKfycbzhcz2naTBFi5vWA6DzrUvcS3VQehhnnn1gjMYAHyVwey7nGp-h8ib5jg_0F8JuhLZ9-A/exec";
 var CU=null,allAssets=[],allHistory=[],allEmployees=[],allUsers=[],allLeaves=[],allSalary=[],allLogs=[],allIncentives=[],allLvBal=[],webcamStream=null,selDocFile=null,curAstFilter="",autoPunchTimer=null,hasPunchedIn=false,punchInTime=null;
 
 function api(p){return fetch(API+"?"+new URLSearchParams(p)).then(r=>r.json());}
@@ -1188,7 +1188,17 @@ function getPunchSessions(punches){
 function checkTodayPunch(){
   var empId=CU.employeeId||CU.username;
   var today=new Date().toISOString().split("T")[0];
+  // Show loading state on button
+  var btn=document.getElementById("punchBtn");
+  var stat=document.getElementById("punchStatus");
+  if(stat){stat.textContent="Checking attendance status…";stat.style.color="var(--muted)";}
   api({action:"getAttendance",employeeId:empId,date:today}).then(r=>{
+    if(!r.success && !r.attendance){
+      // API returned error — show retry
+      if(stat){stat.textContent="⚠ Could not load status. Tap to retry.";stat.style.color="var(--red)";}
+      if(btn){btn.onclick=function(){checkTodayPunch();};}
+      return;
+    }
     var punches=r.attendance||[];
     var sessions=getPunchSessions(punches);
     var openSession=sessions.length&&!sessions[sessions.length-1].out ? sessions[sessions.length-1] : null;
@@ -1202,17 +1212,42 @@ function checkTodayPunch(){
     var ind=document.getElementById("punchIndicator");
 
     // ── Button state ──────────────────────────────────────────────
-    if(btn) btn.className="pbtn"+(hasPunchedIn?" out":"");
+    if(btn){
+      btn.className="pbtn"+(hasPunchedIn?" out":"");
+      btn.onclick=function(){doPunch();}; // restore onclick in case retry had changed it
+    }
     if(lbl) lbl.textContent=hasPunchedIn?"PUNCH OUT":"PUNCH IN";
 
-    // ── Status line ───────────────────────────────────────────────
+    // ── Status banner ─────────────────────────────────────────────
+    // Show a clear coloured banner so user always knows their state
+    var pzone=document.querySelector(".pzone");
+    var existingBanner=document.getElementById("punchStateBanner");
+    if(existingBanner) existingBanner.remove();
+    var banner=document.createElement("div");
+    banner.id="punchStateBanner";
+    banner.style.cssText="margin-top:14px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;text-align:center";
+    if(hasPunchedIn){
+      banner.style.background="#ECFDF5";banner.style.border="1px solid #A7F3D0";banner.style.color="#065F46";
+      banner.textContent="🟢 Currently clocked IN since "+fmt(openSession.in.Timestamp);
+    } else if(sessions.length){
+      var last=sessions[sessions.length-1];
+      var hrs=last.out?((new Date(last.out.Timestamp)-new Date(last.in.Timestamp))/3600000).toFixed(1):"?";
+      banner.style.background="#EFF6FF";banner.style.border="1px solid #BFDBFE";banner.style.color="#1E40AF";
+      banner.textContent="✅ Last session: "+fmt(last.in.Timestamp)+" → "+(last.out?fmt(last.out.Timestamp):"?")+" ("+hrs+"h)";
+    } else {
+      banner.style.background="#F8FAFC";banner.style.border="1px solid #E2E8F0";banner.style.color="#64748B";
+      banner.textContent="⚪ Not punched in today";
+    }
+    if(pzone) pzone.appendChild(banner);
+
+    // ── Status line (keep for compatibility) ──────────────────────
     if(stat){
       if(hasPunchedIn){
         stat.textContent="Clocked in since "+fmt(openSession.in.Timestamp)+" — punch out to record your session";
         stat.style.color="var(--green)";
       } else if(sessions.length){
-        var last=sessions[sessions.length-1];
-        stat.textContent="Last session: "+fmt(last.in.Timestamp)+" → "+fmt(last.out.Timestamp);
+        var last2=sessions[sessions.length-1];
+        stat.textContent="Last session: "+fmt(last2.in.Timestamp)+" → "+(last2.out?fmt(last2.out.Timestamp):"?");
         stat.style.color="var(--muted)";
       } else {
         stat.textContent="Not punched in today";
