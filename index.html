@@ -377,6 +377,7 @@ input[type=file]{display:none}
       <div class="nav-item hide-emp hide-super" data-page="users" onclick="nav('users')"><span class="ni">🔑</span>Users</div>
       <div class="nav-item mgr-only" data-page="finance" onclick="nav('finance')"><span class="ni">💰</span>Finance ✦</div>
       <div class="nav-item hide-emp" data-page="logs" onclick="nav('logs')"><span class="ni">📋</span>Audit Logs</div>
+      <div class="nav-item admin-only" data-page="permissions" onclick="nav('permissions')"><span class="ni">🛡</span>Permissions</div>
       <div class="sb-footer">
         <button class="btn btn-ghost btn-sm btn-full" onclick="openModal('cpModal')">🔑 Change Password</button>
         <button class="btn btn-d btn-sm btn-full mt2" onclick="doLogout()">Sign Out</button>
@@ -393,7 +394,7 @@ input[type=file]{display:none}
 </div>
 
 <div id="page-employees" class="page">
-  <div class="ph"><div class="flex jb aic fw gap2"><div><div class="pt">Employees</div><div class="ps">Manage employee profiles</div></div><button class="btn btn-p admin-only" onclick="openAddEmpModal()">+ Add Employee</button></div></div>
+  <div class="ph"><div class="flex jb aic fw gap2"><div><div class="pt">Employees</div><div class="ps">Manage employee profiles</div></div><button class="btn btn-p mgr-admin" onclick="openAddEmpModal()">+ Add Employee</button></div></div>
   <div class="kpi-row" id="empKpi"></div>
   <div class="flex gap2 mb4 fw">
     <input class="sb" id="empSearch" placeholder="Search name, ID, dept…" oninput="renderEmpTable()">
@@ -408,8 +409,8 @@ input[type=file]{display:none}
   <div class="tabs">
     <div class="tab active" onclick="switchTab(this,'att-punch')">⏱ Punch</div>
     <div class="tab" onclick="switchTab(this,'att-records')">My Records</div>
-    <div class="tab hide-emp" onclick="switchTab(this,'att-admin')">Admin View</div>
-    <div class="tab hide-emp" onclick="switchTab(this,'att-correct')">Corrections</div>
+    <div class="tab can-approve" onclick="switchTab(this,'att-admin')">Team View</div>
+    <div class="tab can-approve" onclick="switchTab(this,'att-correct')">Corrections</div>
   </div>
   <div id="att-punch">
     <div class="g2">
@@ -461,7 +462,7 @@ input[type=file]{display:none}
   </div>
   <div id="att-correct" style="display:none">
     <div class="flex jb mb4 fw gap2"><div style="font-weight:600">Attendance Correction Requests</div><button class="btn btn-p btn-sm" onclick="openModal('corrModal')">+ Request Correction</button></div>
-    <div class="tw"><table><thead><tr><th>ID</th><th>Employee</th><th>Date</th><th>Req In</th><th>Req Out</th><th>Reason</th><th>Status</th><th class="admin-only">Action</th></tr></thead><tbody id="corrBody"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>ID</th><th>Employee</th><th>Date</th><th>Req In</th><th>Req Out</th><th>Reason</th><th>Status</th><th class="can-approve">Action</th></tr></thead><tbody id="corrBody"></tbody></table></div>
   </div>
 </div>
 
@@ -470,8 +471,8 @@ input[type=file]{display:none}
   <div class="lbg" id="leaveBal"></div>
   <div class="tabs">
     <div class="tab active" onclick="switchTab(this,'lv-mine')">My Leaves</div>
-    <div class="tab hide-emp" onclick="switchTab(this,'lv-all')">All Requests</div>
-    <div class="tab mgr-only" onclick="switchTab(this,'lv-balance')">Manage Balances</div>
+    <div class="tab can-approve" onclick="switchTab(this,'lv-all')">All Requests</div>
+    <div class="tab mgr-admin" onclick="switchTab(this,'lv-balance')">Manage Balances</div>
   </div>
   <div id="lv-mine">
     <div class="tw"><table><thead><tr><th>ID</th><th>Type</th><th>Duration</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>🥪</th></tr></thead><tbody id="myLvBody"></tbody></table></div>
@@ -495,8 +496,8 @@ input[type=file]{display:none}
   <div class="tabs">
     <div class="tab active" onclick="switchTab(this,'ast-inv')">Inventory</div>
     <div class="tab" onclick="switchTab(this,'ast-my')">My Assets</div>
-    <div class="tab hide-emp" onclick="switchTab(this,'ast-hist')">History</div>
-    <div class="tab mgr-only" onclick="switchTab(this,'ast-recover')">Recovery 🚩</div>
+    <div class="tab can-approve" onclick="switchTab(this,'ast-hist')">History</div>
+    <div class="tab can-approve" onclick="switchTab(this,'ast-recover')">Recovery 🚩</div>
   </div>
   <div id="ast-inv">
     <div class="flex gap2 mb3 fw aic">
@@ -529,7 +530,7 @@ input[type=file]{display:none}
 </div>
 
 <div id="page-users" class="page">
-  <div class="ph"><div class="flex jb aic fw gap2"><div><div class="pt">User Management</div><div class="ps">Control login access and roles</div></div><button class="btn btn-p mgr-only" onclick="openModal('addUserModal')">+ Add User</button></div></div>
+  <div class="ph"><div class="flex jb aic fw gap2"><div><div class="pt">User Management</div><div class="ps">Control login access and roles</div></div><button class="btn btn-p mgr-admin" onclick="openModal('addUserModal')">+ Add User</button></div></div>
   <div class="tw"><table><thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Dept</th><th>Status</th><th>Actions</th></tr></thead><tbody id="userBody"></tbody></table></div>
 </div>
 
@@ -551,6 +552,24 @@ input[type=file]{display:none}
   <div id="fin-ledger" style="display:none"><div class="flex gap2 mb3"><button class="btn btn-ghost btn-sm" onclick="exportSalaryPDF()">⬇ PDF</button></div><div class="tw"><table><thead><tr><th>Employee</th><th>Dept</th><th>Start CTC</th><th>Current CTC</th><th>Monthly</th><th>Last Inc.</th><th>%</th><th>Status</th></tr></thead><tbody id="salBody"></tbody></table></div></div>
   <div id="fin-inc" style="display:none"><div class="flex jb mb3 fw gap2"><div style="font-weight:600">Incentives Register</div><button class="btn btn-p btn-sm" onclick="openModal('incModal')">+ Add Incentive</button></div><div class="tw"><table><thead><tr><th>Employee</th><th>Dept</th><th>Month/Year</th><th>Amount (₹)</th><th>Reason</th><th>By</th></tr></thead><tbody id="incBody"></tbody></table></div></div>
   <div id="fin-manage" style="display:none"><div class="flex jb mb3 fw gap2"><div style="font-weight:600">Salary Records</div><button class="btn btn-p btn-sm" onclick="openModal('salModal')">+ Add / Edit Salary</button></div><div class="tw"><table><thead><tr><th>Employee</th><th>Dept</th><th>Start CTC</th><th>Current CTC</th><th>Inc Date</th><th>%</th><th>Actions</th></tr></thead><tbody id="salManBody"></tbody></table></div></div>
+</div>
+
+<div id="page-permissions" class="page">
+  <div class="ph">
+    <div class="flex jb aic fw gap2">
+      <div><div class="pt">🛡 Permissions Manager</div><div class="ps">Admin only — control exactly what each role can do</div></div>
+      <div class="flex gap2">
+        <button class="btn btn-ghost btn-sm" onclick="resetRBAC()">↺ Reset to Defaults</button>
+        <button class="btn btn-p" onclick="saveRBACToServer()">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+  <div class="alert al-i mb4" style="font-size:12px">
+    Changes take effect <strong>immediately on next login</strong>. 
+    Admin always retains all rights and cannot be restricted. 
+    Greyed toggles = locked by system.
+  </div>
+  <div id="rbacTable"></div>
 </div>
 
 <div id="page-logs" class="page">
@@ -796,7 +815,7 @@ input[type=file]{display:none}
 
 <div id="toast"></div>
 <script>
-var API="https://script.google.com/macros/s/AKfycbz5vGjKZVkMrA3fhLcdPZhbD3HmcC0M0q5PlH5hvlFpCOnO355lv_beLjEEprs_hkbrlQ/exec";
+var API="https://script.google.com/macros/s/AKfycbzhcz2naTBFi5vWA6DzrUvcS3VQehhnnn1gjMYAHyVwey7nGp-h8ib5jg_0F8JuhLZ9-A/exec";
 var CU=null,allAssets=[],allHistory=[],allEmployees=[],allUsers=[],allLeaves=[],allSalary=[],allLogs=[],allIncentives=[],allLvBal=[],webcamStream=null,selDocFile=null,curAstFilter="",autoPunchTimer=null,hasPunchedIn=false,punchInTime=null;
 
 function api(p){return fetch(API+"?"+new URLSearchParams(p)).then(r=>r.json());}
@@ -872,19 +891,97 @@ document.addEventListener("DOMContentLoaded",()=>{
 // INIT
 function initApp(){
   document.getElementById("sbName").textContent=CU.fullName;
+  loadAndApplyRBAC(); // Load server-side RBAC settings
   document.getElementById("sbRoleTxt").textContent=CU.role;
   var rc={Employee:"r-emp",SuperUser:"r-super",Admin:"r-admin",Manager:"r-mgr"};
   var rp=document.getElementById("sbRolePill");rp.className="rpill "+(rc[CU.role]||"r-emp");rp.textContent=CU.role;
   applyRBAC();startClock();nav("dashboard");
 }
+// ── RBAC PERMISSION HELPERS ─────────────────────────────────────────
+// Use these everywhere instead of direct role string comparisons
+var RBAC = {
+  // Can they delete ANY record?
+  canDelete:      function(){ return CU.role==="Admin"; },
+  // Can they add/edit employees and create logins?
+  canManageEmp:   function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Can they see ALL employees (SuperUser = yes but same as Manager scope-wise)?
+  canViewAllEmp:  function(){ return ["Admin","Manager","SuperUser"].includes(CU.role); },
+  // Can they add/edit assets?
+  canManageAsset: function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Can they assign/return assets?
+  canAllocAsset:  function(){ return ["Admin","Manager","SuperUser"].includes(CU.role); },
+  // Can they see all attendance, admin view, approve corrections?
+  canManageAtt:   function(){ return ["Admin","Manager","SuperUser"].includes(CU.role); },
+  // Can they do manual punch on behalf of someone?
+  canManualPunch: function(){ return ["Admin","Manager","SuperUser"].includes(CU.role); },
+  // Can they approve/reject leaves?
+  canApproveLeave:function(){ return ["Admin","Manager","SuperUser"].includes(CU.role); },
+  // Can they set leave balance per employee?
+  canSetLvBal:    function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Can they add users and manage roles?
+  canManageUsers: function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Can they delete users?
+  canDeleteUser:  function(){ return CU.role==="Admin"; },
+  // Can they see finance/salary?
+  canViewFinance: function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Can they see audit logs?
+  canViewLogs:    function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Can they upload documents?
+  canUploadDoc:   function(){ return ["Admin","Manager"].includes(CU.role); },
+  // Is this an Employee (User) only?
+  isEmployee:     function(){ return CU.role==="Employee"; },
+  // Is SuperUser?
+  isSuperUser:    function(){ return CU.role==="SuperUser"; },
+};
+
 function applyRBAC(){
-  var r=CU.role;
-  document.querySelectorAll(".hide-emp").forEach(e=>e.style.display=r==="Employee"?"none":"");
-  document.querySelectorAll(".hide-super").forEach(e=>e.style.display=(r==="Employee"||r==="SuperUser")?"none":"");
-  document.querySelectorAll(".admin-only").forEach(e=>e.style.display=(r==="Admin"||r==="Manager")?"":"none");
-  document.querySelectorAll(".mgr-only").forEach(e=>e.style.display=r==="Manager"?"":"none");
+  var r = CU.role;
+
+  // ── SIDEBAR NAV visibility ──────────────────────────────────────
+  // Employees: hide-emp elements hidden
+  document.querySelectorAll(".hide-emp").forEach(e=>
+    e.style.display=RBAC.isEmployee()?"none":"");
+
+  // Users page: only Admin and Manager
+  document.querySelectorAll(".hide-super").forEach(e=>
+    e.style.display=RBAC.canManageUsers()?"":"none");
+
+  // Finance: only Admin and Manager
+  document.querySelectorAll(".mgr-only").forEach(e=>
+    e.style.display=RBAC.canViewFinance()?"":"none");
+
+  // Admin-only elements (delete buttons, etc)
+  document.querySelectorAll(".admin-only").forEach(e=>
+    e.style.display=RBAC.canDelete()?"":"none");
+
+  // Manager+Admin action buttons (add employee, add user, etc)
+  document.querySelectorAll(".mgr-admin").forEach(e=>
+    e.style.display=RBAC.canManageEmp()?"":"none");
+
+  // SuperUser+Manager+Admin (approve leaves, assign assets, admin att view)
+  document.querySelectorAll(".can-approve").forEach(e=>
+    e.style.display=RBAC.canApproveLeave()?"":"none");
+
+  // Add Asset button — only Admin + Manager
   var ab=document.getElementById("addAssetBtn");
-  if(ab)ab.style.display=(r==="Admin"||r==="Manager")?"":"none";
+  if(ab) ab.style.display=RBAC.canManageAsset()?"":"none";
+
+  // Manual punch section — Admin, Manager, SuperUser
+  var mp=document.getElementById("manualPunchSection");
+  if(mp) mp.style.display=RBAC.canManualPunch()?"":"none";
+
+  // Finance nav item
+  var finNav=document.querySelector('[data-page="finance"]');
+  if(finNav) finNav.style.display=RBAC.canViewFinance()?"":"none";
+
+  // Logs nav item
+  var logNav=document.querySelector('[data-page="logs"]');
+  if(logNav) logNav.style.display=RBAC.canViewLogs()?"":"none";
+
+  // Role badge colour
+  var rc={Employee:"r-emp",SuperUser:"r-super",Admin:"r-admin",Manager:"r-mgr"};
+  var rp=document.getElementById("sbRolePill");
+  if(rp){rp.className="rpill "+(rc[r]||"r-emp");rp.textContent=r;}
 }
 function nav(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -894,7 +991,7 @@ function nav(page){
   document.querySelector(".sidebar")?.classList.remove("open");
   ({dashboard:loadDash,employees:loadEmps,attendance:()=>checkTodayPunch(),
     leaves:loadLeaves,assets:loadAssets,documents:()=>loadEmps(),
-    users:loadUsers,finance:loadFinance,logs:loadLogs,profile:loadMyProfile}[page]||function(){})();
+    users:loadUsers,finance:loadFinance,logs:loadLogs,profile:loadMyProfile,permissions:loadPermissions}[page]||function(){})();
 }
 
 // CLOCK
@@ -940,7 +1037,7 @@ function loadDash(){
     var todayPunches=atr.attendance||[];
     var bal=br.balance||{};
     var myAssets=allAssets.filter(a=>{var h=(a["Current Holder"]||"").toLowerCase();return h&&h!=="unassigned"&&(h.includes((CU.fullName||"").toLowerCase().split(" ")[0])||h===empId.toLowerCase());});
-    if(CU.role==="Employee")renderEmployeeDash(g,myLvs,myAssets,bal,todayPunches,empId);
+    if(RBAC.isEmployee())renderEmployeeDash(g,myLvs,myAssets,bal,todayPunches,empId);
     else renderManagerDash(g,todayPunches,myLvs);
   });
 }
@@ -1061,7 +1158,7 @@ function populateEmpSelects(){
 function renderEmpTable(){
   var q=document.getElementById("empSearch").value.toLowerCase();
   var d=document.getElementById("empDept").value,s=document.getElementById("empStat").value;
-  var can=["Admin","Manager"].includes(CU.role);
+  var can=RBAC.canManageEmp();
   var rows=allEmployees.filter(e=>{
     if(d&&e.Department!==d)return false;
     if(s&&e.Status!==s)return false;
@@ -1072,7 +1169,7 @@ function renderEmpTable(){
   if(!rows.length){b.innerHTML='<tr><td colspan="8" class="empty">No employees found</td></tr>';return;}
   b.innerHTML=rows.map(e=>{
     var id=esc(e["Employee ID"]||"");
-    return `<tr><td><span class="tag">${id}</span></td><td><strong>${esc(e["Full Name"]||"-")}</strong></td><td>${esc(e.Department||"-")}</td><td>${esc(e.Designation||"-")}</td><td>${fmt(e["Date of Joining"])}</td><td><span class="tag">${esc(e["Employment Type"]||"Full-Time")}</span></td><td>${badge(e.Status||"Active")}</td><td class="flex gap2">${can?`<button class="btn btn-ghost btn-xs" onclick="openEditEmpModal('${id}')">Edit</button>`:""}<button class="btn btn-ghost btn-xs" onclick="viewEmpProfile('${id}')">View</button></td></tr>`;
+    return `<tr><td><span class="tag">${id}</span></td><td><strong>${esc(e["Full Name"]||"-")}</strong></td><td>${esc(e.Department||"-")}</td><td>${esc(e.Designation||"-")}</td><td>${fmt(e["Date of Joining"])}</td><td><span class="tag">${esc(e["Employment Type"]||"Full-Time")}</span></td><td>${badge(e.Status||"Active")}</td><td class="flex gap2">${RBAC.canManageEmp()?`<button class="btn btn-ghost btn-xs" onclick="openEditEmpModal('${id}')">Edit</button>`:""}<button class="btn btn-ghost btn-xs" onclick="viewEmpProfile('${id}')">View</button></td></tr>`;
   }).join("");
 }
 function openAddEmpModal(){
@@ -1117,8 +1214,8 @@ function loadProfileById(empId){
     api({action:"getChangeRequests",employeeId:empId}).then(cr=>{
       var reqs=cr.requests||[];var pending=reqs.filter(x=>x.Status==="Pending");
       var isMe=String(empId).trim()===String(CU.employeeId||CU.username).trim();
-      var rdOnly=CU.role==="Employee"&&isMe;
-      var can=["Admin","Manager"].includes(CU.role);
+      var rdOnly=RBAC.isEmployee()&&isMe;
+      var can=RBAC.canManageEmp();
       var ph=e["Photo URL"]||"https://ui-avatars.com/api/?name="+encodeURIComponent(e["Full Name"]||"?")+
         "&background=5B21B6&color=fff&size=80&bold=true";
       var html=`<div class="prh">
@@ -1433,7 +1530,7 @@ function startWebcam(){
   navigator.mediaDevices.getUserMedia({video:true}).then(s=>{webcamStream=s;var v=document.getElementById("webcamFeed");v.srcObject=s;v.style.display="block";toast("Camera ready","s");}).catch(()=>toast("Camera denied","e"));
 }
 function doManualPunch(){
-  if(!["Admin","Manager"].includes(CU.role)){toast("Not authorized","e");return;}
+  if(!RBAC.canManageAsset()){toast("Not authorized — only Admin/Manager can add assets","e");return;}
   var empId=document.getElementById("mp_empId").value.trim();
   var date=document.getElementById("mp_date").value;
   var inT=document.getElementById("mp_in").value;
@@ -1494,8 +1591,8 @@ function loadCorr(){
   api({action:"getAttendanceCorrections"}).then(r=>{
     var all=r.corrections||[];
     var empId=CU.employeeId||CU.username;
-    var vis=CU.role==="Employee"?all.filter(c=>c["Employee ID"]===empId):all;
-    var can=["Admin","Manager"].includes(CU.role);
+    var vis=RBAC.isEmployee()?all.filter(c=>c["Employee ID"]===empId):all;
+    var can=RBAC.canApproveLeave();
     var tb=document.getElementById("corrBody");
     if(!vis.length){tb.innerHTML='<tr><td colspan="8" class="empty">No correction requests</td></tr>';return;}
     tb.innerHTML=vis.map(c=>{
@@ -1564,7 +1661,7 @@ function loadAllLeaves(){
   var sf=document.getElementById("lvStatFilter").value;
   api({action:"getLeaves"}).then(r=>{
     var lvs=r.leaves||[];if(sf)lvs=lvs.filter(l=>l.Status===sf);
-    var can=["Admin","Manager"].includes(CU.role);
+    var can=RBAC.canApproveLeave();
     var tb=document.getElementById("allLvBody");
     if(!lvs.length){tb.innerHTML='<tr><td colspan="8" class="empty">No leaves</td></tr>';return;}
     tb.innerHTML=lvs.slice().reverse().map(l=>{
@@ -1676,9 +1773,20 @@ function openAstDetail(assetId){
   tl+=hist.map(h=>{var cls=String(h["Action Type"]||"").toLowerCase().includes("alloc")?"":"returned";return `<div class="tli ${cls}"><div class="tl-d">${fmt(h.Timestamp)}</div><div class="tl-a">${esc(h["Action Type"]||"-")}</div><div class="tl-x">${esc(h["Issued To"]?"→ "+h["Issued To"]:h["Received From"]?"← "+h["Received From"]:"")+(h.Department?" · "+h.Department:"")+(h.Condition?" · Condition: "+h.Condition:"")+(h["Done By"]?" · By: "+h["Done By"]:"")} ${esc(h.Notes||"")}</div></div>`;}).join("");
   document.getElementById("adm_timeline").innerHTML=tl?`<div class="tl">${tl}</div>`:'<p class="tm" style="font-size:13px">No history yet.</p>';
   // Action buttons
-  var r=CU.role,id2=esc(assetId),nm=esc(asset["Asset Name"]||""),btns="";
-  if(r==="Admin"||r==="Manager"){btns+=`<button class="btn btn-p" onclick="closeModal('astDetailModal');openAllocModal('${id2}','${nm}','Allocated')">📤 Issue Asset</button><button class="btn btn-ghost" onclick="closeModal('astDetailModal');openAllocModal('${id2}','${nm}','Returned')">📥 Return</button>`;}
-  if(r==="Manager"){btns+=`<button class="btn btn-ghost" onclick="closeModal('astDetailModal');openEditAstModal('${id2}')">✏️ Edit</button><button class="btn btn-d" onclick="closeModal('astDetailModal');deleteAsset('${id2}','${nm}')">🗑 Delete</button>`;}
+  var id2=esc(assetId),nm=esc(asset["Asset Name"]||""),btns="";
+  // Assign/Return: Admin + Manager + SuperUser
+  if(RBAC.canAllocAsset()){
+    btns+=`<button class="btn btn-p" onclick="closeModal('astDetailModal');openAllocModal('${id2}','${nm}','Allocated')">📤 Issue Asset</button>`;
+    btns+=`<button class="btn btn-ghost" onclick="closeModal('astDetailModal');openAllocModal('${id2}','${nm}','Returned')">📥 Return</button>`;
+  }
+  // Edit: Admin + Manager only
+  if(RBAC.canManageAsset()){
+    btns+=`<button class="btn btn-ghost" onclick="closeModal('astDetailModal');openEditAstModal('${id2}')">✏️ Edit</button>`;
+  }
+  // Delete: Admin ONLY
+  if(RBAC.canDelete()){
+    btns+=`<button class="btn btn-d" onclick="closeModal('astDetailModal');deleteAsset('${id2}','${nm}')">🗑 Delete</button>`;
+  }
   document.getElementById("adm_actions").innerHTML=btns||'<p class="tm" style="font-size:12px">View only — contact Admin/Manager to modify.</p>';
   openModal("astDetailModal");
 }
@@ -1711,7 +1819,7 @@ function checkSerial(){
   api({action:"checkSerial",serial:s}).then(r=>{if(r.duplicate)toast("⚠ Serial already exists: "+r.assetName+" ("+r.assetId+")","w");});
 }
 function saveAsset(){
-  if(!["Admin","Manager"].includes(CU.role)){toast("Not authorized","e");return;}
+  if(!RBAC.canManageAsset()){toast("Not authorized — only Admin/Manager can add assets","e");return;}
   var d={action:"addAsset",addedBy:CU.fullName,assetId:document.getElementById("a_id").value.trim(),assetName:document.getElementById("a_name").value.trim(),category:document.getElementById("a_cat").value,brandModel:document.getElementById("a_brand").value.trim(),serialNumber:document.getElementById("a_serial").value.trim(),purchaseDate:document.getElementById("a_pdate").value,purchaseCost:document.getElementById("a_cost").value,condition:document.getElementById("a_cond").value,department:document.getElementById("a_dept").value.trim(),description:document.getElementById("a_desc").value.trim()};
   if(!d.assetId||!d.assetName){toast("Asset ID and Name required","e");return;}
   api(d).then(r=>{if(r.success){toast("Asset added","s");closeModal("addAssetModal");loadAssets();}else toast("Error: "+(r.error||""),"e");});
@@ -1722,12 +1830,12 @@ function openEditAstModal(assetId){
   openModal("editAstModal");
 }
 function saveEditAsset(){
-  if(CU.role!=="Manager"){toast("Only Manager can edit assets","e");return;}
+  if(!RBAC.canManageAsset()){toast("Only Admin/Manager can edit assets","e");return;}
   var id=document.getElementById("ea_id").value;
   api({action:"updateAsset",assetId:id,currentHolder:allAssets.find(a=>a["Asset ID"]===id)?.["Current Holder"]||"",condition:document.getElementById("ea_cond").value,department:document.getElementById("ea_dept").value}).then(()=>{toast("Asset updated","s");closeModal("editAstModal");loadAssets();});
 }
 function deleteAsset(id,name){
-  if(CU.role!=="Manager"){toast("Only Manager can delete","e");return;}
+  if(!RBAC.canDelete()){toast("Only Admin can delete assets","e");return;}
   if(!confirm('Delete "'+name+'"? This cannot be undone.'))return;
   api({action:"deleteAsset",assetId:id,assetName:name,deletedBy:CU.fullName}).then(r=>{if(r.success){toast("Asset deleted","s");loadAssets();}else toast("Error: "+(r.error||""),"e");});
 }
@@ -1755,7 +1863,7 @@ function doAssetAction(){
 function loadDocs(){
   var empId=document.getElementById("docEmpF").value;if(!empId)return;
   api({action:"getDocuments",employeeId:empId}).then(r=>{
-    var docs=r.documents||[];var can=["Admin","Manager"].includes(CU.role);
+    var docs=r.documents||[];var can=RBAC.canUploadDoc();
     var tb=document.getElementById("docBody");
     if(!docs.length){tb.innerHTML='<tr><td colspan="5" class="empty">No documents uploaded</td></tr>';return;}
     tb.innerHTML=docs.map(d=>`<tr><td>${esc(d["Doc Type"]||"-")}</td><td>${esc(d["File Name"]||"-")}</td><td>${esc(d["Uploaded By"]||"-")}</td><td>${fmt(d.Timestamp)}</td><td>${can&&d["Drive URL"]?`<a href="${esc(d["Drive URL"])}" target="_blank" class="btn btn-ghost btn-xs">View</a>`:"—"}</td></tr>`).join("");
@@ -1779,12 +1887,14 @@ function loadUsers(){
   api({action:"getUsers"}).then(r=>{allUsers=r.users||[];renderUsers();});
 }
 function renderUsers(){
-  var isA=["Admin","Manager"].includes(CU.role),isM=CU.role==="Manager";
+  var isA=RBAC.canManageUsers(),isM=RBAC.canDeleteUser(); // isM = delete-capable (Admin only)
   var tb=document.getElementById("userBody");
   if(!allUsers.length){tb.innerHTML='<tr><td colspan="6" class="empty">No users</td></tr>';return;}
   tb.innerHTML=allUsers.map(u=>{
     var active=String(u.active||"").toUpperCase()==="YES";
-    return `<tr><td><span class="tag">${esc(u.username)}</span></td><td>${esc(u.fullName)}</td><td><span class="badge bg-p">${esc(u.role)}</span></td><td>${esc(u.department||"-")}</td><td>${badge(active?"YES":"NO")}</td><td class="flex gap2">${isA?`<button class="btn btn-ghost btn-xs" onclick="openEditUser('${esc(u.username)}')">Edit</button><button class="btn btn-ghost btn-xs" onclick="toggleUser('${esc(u.username)}')">${active?"Deactivate":"Activate"}</button>`:""}${isM?`<button class="btn btn-d btn-xs" onclick="deleteUser('${esc(u.username)}')">Delete</button>`:""}</td></tr>`;
+    var editBtns=RBAC.canManageUsers()?`<button class="btn btn-ghost btn-xs" onclick="openEditUser('${esc(u.username)}')">Edit</button><button class="btn btn-ghost btn-xs" onclick="toggleUser('${esc(u.username)}')">${active?"Deactivate":"Activate"}</button>`:"";
+    var delBtn=RBAC.canDeleteUser()?`<button class="btn btn-d btn-xs" onclick="deleteUser('${esc(u.username)}')">Delete</button>`:"";
+    return `<tr><td><span class="tag">${esc(u.username)}</span></td><td>${esc(u.fullName)}</td><td><span class="badge bg-p">${esc(u.role)}</span></td><td>${esc(u.department||"-")}</td><td>${badge(active?"YES":"NO")}</td><td class="flex gap2">${editBtns}${delBtn}</td></tr>`;
   }).join("");
 }
 function saveUser(){
@@ -1793,11 +1903,11 @@ function saveUser(){
 function openEditUser(un){document.getElementById("eu_user").value=un;document.getElementById("eu_role").value="";document.getElementById("eu_pass").value="";openModal("editUserModal");}
 function saveEditUser(){api({action:"editUser",doneBy:CU.fullName,username:document.getElementById("eu_user").value,newRole:document.getElementById("eu_role").value,newPassword:document.getElementById("eu_pass").value}).then(r=>{if(r.success){toast("User updated","s");closeModal("editUserModal");loadUsers();}else toast("Error: "+(r.error||""),"e");});}
 function toggleUser(un){api({action:"toggleUser",username:un,doneBy:CU.fullName}).then(r=>{if(r.success){toast("Status updated","s");loadUsers();}});}
-function deleteUser(un){if(!confirm('Delete user "'+un+'"?'))return;api({action:"deleteUser",username:un,doneBy:CU.fullName}).then(r=>{if(r.success){toast("Deleted","s");loadUsers();}else toast("Error: "+(r.error||""),"e");});}
+function deleteUser(un){if(!RBAC.canDeleteUser()){toast("Only Admin can delete users","e");return;}if(!confirm('Delete user "'+un+'"?'))return;api({action:"deleteUser",username:un,doneBy:CU.fullName}).then(r=>{if(r.success){toast("Deleted","s");loadUsers();}else toast("Error: "+(r.error||""),"e");});}
 
 // FINANCE
 function loadFinance(){
-  if(CU.role!=="Manager"){document.getElementById("page-finance").innerHTML='<div class="alert al-e">Access restricted to Manager role only.</div>';return;}
+  if(!RBAC.canViewFinance()){document.getElementById("page-finance").innerHTML='<div class="alert al-e">Access restricted to Admin/Manager only.</div>';return;}
   Promise.all([api({action:"getSalaryData"}),api({action:"getAllEmployees"})]).then(([sr,er])=>{
     allSalary=sr.salary||[];allEmployees=er.employees||[];populateEmpSelects();
     var active=allSalary.filter(s=>s.Status==="Active");
@@ -1890,6 +2000,179 @@ window.addEventListener("load",()=>{
   var adf=document.getElementById("adminDate");if(adf)adf.value=now.toISOString().split("T")[0];
   var iy=document.getElementById("inc_year");if(iy)iy.value=now.getFullYear();
 });
+
+// ── RBAC PERMISSIONS MANAGER ──────────────────────────────────────────
+var RBAC_LABELS = {
+  canDelete:       { label:"Delete Records",        desc:"Delete assets, employees, users — ADMIN ONLY by design" },
+  canManageEmp:    { label:"Add / Edit Employees",  desc:"Create new employee profiles and edit existing ones" },
+  canViewAllEmp:   { label:"View All Employees",    desc:"See the full employee list and profiles" },
+  canManageAsset:  { label:"Add / Edit Assets",     desc:"Create new assets and edit asset details" },
+  canAllocAsset:   { label:"Assign / Return Assets",desc:"Issue assets to employees and mark returns" },
+  canManageAtt:    { label:"Team Attendance View",  desc:"See all employees' attendance, admin view tab" },
+  canManualPunch:  { label:"Manual Punch on Behalf",desc:"Add or edit punch times for other employees" },
+  canApproveLeave: { label:"Approve / Reject Leaves",desc:"Review and decide on leave applications" },
+  canSetLvBal:     { label:"Set Leave Balances",    desc:"Set earned leave accrual rate & sick leave per employee" },
+  canManageUsers:  { label:"Add / Edit Users",      desc:"Create logins, change roles, activate/deactivate" },
+  canDeleteUser:   { label:"Delete Users",          desc:"Permanently remove user accounts — ADMIN ONLY" },
+  canViewFinance:  { label:"View Finance & Salary", desc:"Access salary records, incentives and payroll data" },
+  canViewLogs:     { label:"View Audit Logs",       desc:"See the full system activity trail" },
+  canUploadDoc:    { label:"Upload Documents",      desc:"Upload employee documents to the vault" },
+};
+
+// Roles that can be configured (Admin is always all-true, locked)
+var CONFIGURABLE_ROLES = ["Manager","SuperUser","Employee"];
+// Permissions locked to Admin-only regardless of settings
+var ADMIN_LOCKED = ["canDelete","canDeleteUser"];
+// Permissions locked ON for Admin (can never be turned off)
+var ALWAYS_ADMIN = Object.keys(RBAC_LABELS);
+
+var liveRBAC = null; // loaded from server
+
+function loadPermissions(){
+  if(!RBAC.canDelete()){ // Only Admin
+    document.getElementById("rbacTable").innerHTML='<div class="alert al-e">Access restricted to Admin only.</div>';
+    return;
+  }
+  document.getElementById("rbacTable").innerHTML='<div class="tm" style="padding:24px;text-align:center">Loading permissions…</div>';
+  api({action:"getRBACSettings"}).then(r=>{
+    liveRBAC = r.rbac || {};
+    renderRBACTable();
+  }).catch(()=>{
+    // Fallback to defaults embedded in RBAC object
+    liveRBAC = buildDefaultRBAC();
+    renderRBACTable();
+  });
+}
+
+function buildDefaultRBAC(){
+  var d={};
+  Object.keys(RBAC_LABELS).forEach(function(p){
+    d[p]={ Admin:true, Manager:RBAC[p]?RBAC[p]():false, SuperUser:false, Employee:false };
+    // Reconstruct defaults from current RBAC functions
+  });
+  return d;
+}
+
+function renderRBACTable(){
+  var tbl = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)">';
+  // Header row
+  tbl += '<thead><tr style="background:var(--bg)">';
+  tbl += '<th style="padding:13px 18px;text-align:left;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);min-width:220px">Permission</th>';
+  tbl += '<th style="padding:13px 18px;text-align:center;font-size:11px;font-weight:800;color:#5B21B6;text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border)">Admin</th>';
+  ['Manager','SuperUser','Employee'].forEach(function(role){
+    var clr={Manager:'#DC2626',SuperUser:'#059669',Employee:'#4338CA'}[role];
+    tbl += '<th style="padding:13px 18px;text-align:center;font-size:11px;font-weight:800;color:'+clr+';text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border)">'+role+'</th>';
+  });
+  tbl += '<th style="padding:13px 18px;text-align:left;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border)">Description</th>';
+  tbl += '</tr></thead><tbody>';
+
+  var odd = true;
+  Object.keys(RBAC_LABELS).forEach(function(perm){
+    var info = RBAC_LABELS[perm];
+    var isAdminLocked = ADMIN_LOCKED.includes(perm);
+    var bg = odd ? '#fff' : '#F8FAFC';
+    odd = !odd;
+    tbl += '<tr style="background:'+bg+';border-bottom:1px solid rgba(226,232,240,.5)">';
+    // Permission name
+    tbl += '<td style="padding:13px 18px"><div style="font-weight:700;font-size:13px;color:var(--text)">'+info.label+'</div>';
+    if(isAdminLocked) tbl += '<div style="font-size:10px;color:var(--orange);font-weight:600;margin-top:2px">⚠ System-locked — Admin only</div>';
+    tbl += '</td>';
+    // Admin always ON (locked)
+    tbl += '<td style="padding:13px 18px;text-align:center"><div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#ECFDF5;border-radius:8px;font-size:16px">✅</div></td>';
+    // Configurable roles
+    ['Manager','SuperUser','Employee'].forEach(function(role){
+      var val = liveRBAC[perm] ? (liveRBAC[perm][role]===true||liveRBAC[perm][role]==="TRUE") : false;
+      var locked = isAdminLocked; // these stay OFF for non-admin
+      var chkId = 'rbac_'+perm+'_'+role;
+      if(locked){
+        tbl += '<td style="padding:13px 18px;text-align:center"><div style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#FEF2F2;border-radius:8px;font-size:16px" title="Locked — Admin only">🔒</div></td>';
+      } else {
+        var checkedAttr = val ? 'checked' : '';
+        tbl += '<td style="padding:13px 18px;text-align:center">';
+        tbl += '<label style="display:inline-flex;align-items:center;cursor:pointer;gap:0">';
+        tbl += '<input type="checkbox" id="'+chkId+'" data-perm="'+perm+'" data-role="'+role+'" '+checkedAttr+' onchange="onRBACChange(this.dataset.perm,this.dataset.role,this.checked)">';
+        tbl += 'style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent)">';
+        tbl += '</label></td>';
+      }
+    });
+    // Description
+    tbl += '<td style="padding:13px 18px;font-size:12px;color:var(--muted)">'+info.desc+'</td>';
+    tbl += '</tr>';
+  });
+  tbl += '</tbody></table></div>';
+
+  // Summary cards
+  tbl += '<div class="g4 mt4">';
+  ['Admin','Manager','SuperUser','Employee'].forEach(function(role){
+    var count=0, total=Object.keys(RBAC_LABELS).length;
+    Object.keys(RBAC_LABELS).forEach(function(p){ if(role==="Admin"||liveRBAC[p]&&(liveRBAC[p][role]===true||liveRBAC[p][role]==="TRUE")) count++; });
+    var clr={Admin:'#5B21B6',Manager:'#DC2626',SuperUser:'#059669',Employee:'#4338CA'}[role];
+    tbl += '<div class="sc" style="border-top:3px solid '+clr+'"><div class="sc-lbl">'+role+'</div><div class="sc-val" style="color:'+clr+';font-size:28px">'+count+'/'+total+'</div><div class="sc-sub">Permissions granted</div></div>';
+  });
+  tbl += '</div>';
+
+  document.getElementById("rbacTable").innerHTML = tbl;
+}
+
+function onRBACChange(perm, role, val){
+  if(!liveRBAC[perm]) liveRBAC[perm]={Admin:true,Manager:false,SuperUser:false,Employee:false};
+  liveRBAC[perm][role] = val;
+  // Re-render summary cards only (not full table - would lose focus)
+  renderRBACSummary();
+}
+
+function renderRBACSummary(){
+  // Update summary cards
+  ['Admin','Manager','SuperUser','Employee'].forEach(function(role){
+    var count=0, total=Object.keys(RBAC_LABELS).length;
+    Object.keys(RBAC_LABELS).forEach(function(p){
+      if(role==="Admin") count++;
+      else { var v=liveRBAC[p]&&(liveRBAC[p][role]===true||liveRBAC[p][role]==="TRUE"); if(v) count++; }
+    });
+  });
+}
+
+function saveRBACToServer(){
+  if(!liveRBAC){ toast("Load permissions first","e"); return; }
+  // Ensure Admin always has all permissions
+  Object.keys(RBAC_LABELS).forEach(function(p){ if(!liveRBAC[p]) liveRBAC[p]={}; liveRBAC[p].Admin=true; });
+  // Ensure admin-locked perms are always false for non-admin
+  ADMIN_LOCKED.forEach(function(p){ if(liveRBAC[p]){ liveRBAC[p].Manager=false; liveRBAC[p].SuperUser=false; liveRBAC[p].Employee=false; }});
+  api({action:"saveRBACSettings", rbac:JSON.stringify(liveRBAC), savedBy:CU.fullName}).then(r=>{
+    if(r.success){
+      toast("✅ Permissions saved — take effect on next login","s");
+      // Apply immediately to current session too
+      applyLiveRBAC();
+    } else toast("Error: "+(r.error||"Save failed"),"e");
+  });
+}
+
+function resetRBAC(){
+  if(!confirm("Reset all permissions to default values?")) return;
+  api({action:"getRBACSettings"}).then(r=>{ liveRBAC=r.rbac; renderRBACTable(); toast("Reset to defaults","i"); });
+}
+
+function applyLiveRBAC(){
+  // Update RBAC functions with live values from server
+  if(!liveRBAC) return;
+  Object.keys(RBAC_LABELS).forEach(function(perm){
+    if(RBAC[perm]){
+      var settings = liveRBAC[perm] || {};
+      RBAC[perm] = (function(s){ return function(){ return s[CU.role]===true||s[CU.role]==="TRUE"; }; })(settings);
+    }
+  });
+  // Admin always gets everything
+  if(CU.role==="Admin") Object.keys(RBAC).forEach(function(k){ if(typeof RBAC[k]==="function") RBAC[k]=function(){return true;}; });
+  applyRBAC();
+}
+
+// Load RBAC from server on login and apply
+function loadAndApplyRBAC(){
+  api({action:"getRBACSettings"}).then(r=>{
+    if(r.rbac){ liveRBAC=r.rbac; applyLiveRBAC(); }
+  }).catch(function(){}); // fail silently, use defaults
+}
+
 </script>
 </body>
 </html>
